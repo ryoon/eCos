@@ -104,8 +104,7 @@ cyg_libc_invoke_main( CYG_ADDRWORD );
 # endif
 #endif
 
-static cyg_uint8 cyg_libc_main_stack[ CYGNUM_LIBC_MAIN_DEFAULT_STACK_SIZE ]
-  CYGBLD_ATTRIB_ALIGN(CYGARC_ALIGNMENT);
+static cyg_uint8 cyg_libc_main_stack[ CYGNUM_LIBC_MAIN_DEFAULT_STACK_SIZE ];
 
 #else // !ifdef CYGSEM_LIBC_MAIN_STACK_FROM_SYSTEM
 

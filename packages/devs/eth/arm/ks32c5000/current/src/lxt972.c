@@ -59,11 +59,7 @@
 #define Bit(n) (1<<(n))
 
 // address of the LX972 phy
-#ifdef CYGPKG_DEVS_ETH_ARM_KS32C5000_PHYADDR
-#define LX972_ADDR  CYGPKG_DEVS_ETH_ARM_KS32C5000_PHYADDR
-#else
-#define LX972_ADDR  0
-#endif
+#define LX972_ADDR  0x00
 
 // LX972 register offsets
 #define LX972_CTRL_REG          0x00

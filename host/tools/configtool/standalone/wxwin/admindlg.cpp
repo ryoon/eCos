@@ -145,7 +145,7 @@ void ecAdminDialog::OnInitDialog(wxInitDialogEvent& event)
     }
     
     // populate the package tree
-
+    
     if (!PopulatePackageTree (m_strRepository))
     {
         m_strRepository = wxT("");
@@ -242,7 +242,7 @@ void ecAdminDialog::OnAdd(wxCommandEvent& event)
                 // get an eCos package distribution file
                 
                 // extract the licence file
-
+                
                 wxString strCommand;
                 strCommand.Printf(wxT("add %s --extract_license"), (const wxChar*) strPathName);
                 strCommand.Replace(wxT("\\"), wxT("/")); // backslashes -> forward slashes for Tcl_EvalFile
@@ -251,11 +251,11 @@ void ecAdminDialog::OnAdd(wxCommandEvent& event)
                 wxString strLicenseFile = m_strRepository + wxString(wxFILE_SEP_PATH) + wxT("pkgadd.txt");
 #ifdef __WXMSW__
                 strLicenseFile.Replace (wxT("/"), wxT("\\")); // forward slashes -> backslashes for Win32
-#endif
+#endif                
                 // read the license file
-
+                
                 wxFile fileLicenseFile;
-                if (fileLicenseFile.Exists (strLicenseFile) && fileLicenseFile.Open (strLicenseFile, wxFile::read))
+                if (fileLicenseFile.Open (strLicenseFile, wxFile::read))
                 {
                     //TRACE (_T("License file found at %s\n"), strLicenseFile);
                     const off_t dwLicenseLength = fileLicenseFile.Length ();
@@ -269,11 +269,9 @@ void ecAdminDialog::OnAdd(wxCommandEvent& event)
 #ifdef __WXMSW__
                     if (-1 == strLicenseText.Find (wxT("\r\n"))) // if the file has LF line endings...
                         strLicenseText.Replace (_T("\n"), _T("\r\n")); // ... replace with CRLF line endings
-#else
-                    strLicenseText.Replace (_T("\r"), wxEmptyString); // remove CR characters
-#endif
+#endif                    
                     // display the license text
-
+                    
                     ecLicenseDialog dlgLicense (strLicenseText, this, ecID_LICENSE_DIALOG, strPathName + _(" - Add Packages"));
                     if (wxID_OK != dlgLicense.ShowModal ()) // if license not accepted by user
                         continue; // try the next file
@@ -531,12 +529,12 @@ bool ecAdminDialog::EvalTclFile(int nargc, const wxString& Argv, const wxString&
     Tcl_SetStdChannel (outchan, TCL_STDOUT); // direct standard output to NUL:
 #endif
 
-    const char * pszStatus = Tcl_SetVar (interp, "argv0", (char*) argv0.c_str(), 0);
+    char * pszStatus = Tcl_SetVar (interp, "argv0", (char*) argv0.c_str(), 0);
     pszStatus = Tcl_SetVar (interp, "argv", (char*) argv.c_str(), 0);
     pszStatus = Tcl_SetVar (interp, "argc", (char*) argc.c_str(), 0);
     pszStatus = Tcl_SetVar (interp, "gui_mode", "1", 0); // return errors in result string
     int nStatus = Tcl_EvalFile (interp, (char*) argv0.c_str());
-    const char* result = Tcl_GetStringResult (interp);
+    char* result = Tcl_GetStringResult (interp);
 
 #ifdef __WXMSW__
     Tcl_SetStdChannel (NULL, TCL_STDOUT);

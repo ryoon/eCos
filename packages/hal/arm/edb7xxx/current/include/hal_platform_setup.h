@@ -101,12 +101,8 @@
 #define LCD_PA           0xC0000000
 #define ROM0_LA_START    0xE0000000
 #define ROM0_PA          0x00000000
-#if defined (__EDB7211) 
-#define ROM0_LA_END      0xE0800000
-#else
 #define ROM0_LA_END      0xF0000000
-#endif
-#define ROM1_LA_START    ROM0_LA_END 
+#define ROM1_LA_START    0xF0000000
 #define ROM1_LA_END      0x00000000
 #define ROM1_PA          0x10000000
 #define EXPANSION2_LA_START 0x20000000
@@ -266,6 +262,7 @@ _phys_store_end:
 	mcr	MMU_CP,0,r1,MMU_FlushIDC,c0,0 /* Invalidate Caches */
         .endm
 #endif // CYG_HAL_STARTUP_RAM        
+
 #ifdef CYGHWR_HAL_ARM_EDB7XXX_VARIANT_EP7312
         .macro  INIT_MEMORY_CONFIG
         mov     r0,#(CPSR_IRQ_DISABLE|CPSR_FIQ_DISABLE|CPSR_SUPERVISOR_MODE)
@@ -287,7 +284,7 @@ _phys_store_end:
 	str	r2,[r1]
         .endm
 #else
-#ifdef CYGHWR_HAL_ARM_EDB7XXX_VARIANT_EP7209
+#if CYGHWR_HAL_ARM_EDB7XXX_VARIANT_EP7209
 // No DRAM controller
         .macro  INIT_MEMORY_CONFIG
 /* Initialize memory configuration */

@@ -49,11 +49,7 @@ ENTRY(_reset_vector)
 #ifdef EXTRAS
 INPUT(extras.o)
 #endif
-#if (__GNUC__ >= 3)
-GROUP(libtarget.a libgcc.a libsupc++.a)
-#else
 GROUP(libtarget.a libgcc.a)
-#endif
 
 #define ALIGN_LMA 0x40
 #define FOLLOWING(_section_) AT ((LOADADDR (_section_) + SIZEOF (_section_) + ALIGN_LMA - 1) & ~ (ALIGN_LMA - 1))
@@ -287,7 +283,7 @@ GROUP(libtarget.a libgcc.a)
 #define SECTION_sdata(_region_, _vma_, _lma_)                 \
   .sdata _vma_ : _lma_                                        \
     {                                                         \
-      FORCE_OUTPUT; *(.sdata) *(.sdata.*) *(.gnu.linkonce.s*)  \
+      FORCE_OUTPUT; *(.sdata) *(.sdata.*) *(.gnulinkonce.s*)  \
     } > _region_
 
 #define SECTION_lit8(_region_, _vma_, _lma_)    \

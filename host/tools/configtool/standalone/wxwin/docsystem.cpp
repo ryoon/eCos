@@ -2,7 +2,6 @@
 //
 // ----------------------------------------------------------------------------
 // Copyright (C) 1998, 1999, 2000 Red Hat, Inc.
-// Copyright (C) 2003 John Dallaway
 //
 // This program is part of the eCos host tools.
 //
@@ -28,7 +27,7 @@
 //===========================================================================
 //#####DESCRIPTIONBEGIN####
 //
-// Author(s):   julians, jld
+// Author(s):   julians
 // Contact(s):  julians
 // Date:        2001/04/04
 // Version:     $Id: docsystem.cpp,v 1.19 2001/12/11 15:59:51 julians Exp $
@@ -795,7 +794,7 @@ wxString ecHtmlIndexer::FindIndexFilesDir(const wxString& reposDir)
             }
             wxString name(ecMakeNameFromPath(reposDir));
             wxString ecosVerDir = ecosDir + sep + name;
-            if (!wxDirExists(ecosVerDir))
+            if (!wxFileExists(ecosVerDir))
             {
                 wxMkdir(ecosVerDir);
             }

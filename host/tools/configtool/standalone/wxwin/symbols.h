@@ -2,7 +2,6 @@
 //
 // ----------------------------------------------------------------------------
 // Copyright (C) 1998, 1999, 2000 Red Hat, Inc.
-// Copyright (C) 2003 John Dallaway
 //
 // This program is part of the eCos host tools.
 //
@@ -44,7 +43,7 @@
 //
 //===========================================================================
 
-#define ecCONFIGURATION_TOOL_VERSION        "2.net"
+#define ecCONFIGURATION_TOOL_VERSION        2.12
 
 // Use /ecos-x notation for drive specification
 #define ecUSE_ECOS_X_NOTATION               1

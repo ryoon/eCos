@@ -12,7 +12,6 @@
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
-// Copyright (C) 2003 Gary Thomas
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -58,49 +57,26 @@
 
 #include <cyg/hal/quicc/ppc8xx.h>                  // QUICC structure definitions
 
-static unsigned int smc_select_word_length[] = {
+static unsigned int select_word_length[] = {
     QUICC_SMCMR_CLEN(5),  // 5 bits / word (char)
     QUICC_SMCMR_CLEN(6),
     QUICC_SMCMR_CLEN(7),
     QUICC_SMCMR_CLEN(8)
 };
 
-static unsigned int smc_select_stop_bits[] = {
+static unsigned int select_stop_bits[] = {
     0, 
     QUICC_SMCMR_SB(1),   // 1 stop bit
     QUICC_SMCMR_SB(1),   // 1.5 stop bit
     QUICC_SMCMR_SB(2)    // 2 stop bits
 };
 
-static unsigned int smc_select_parity[] = {
+static unsigned int select_parity[] = {
     QUICC_SMCMR_PE(0),                     // No parity
     QUICC_SMCMR_PE(1)|QUICC_SMCMR_PM(1),   // Even parity
     QUICC_SMCMR_PE(1)|QUICC_SMCMR_PM(0),   // Odd parity
     0,                                     // Mark parity
     0,                                     // Space parity
-};
-
-static unsigned int scc_select_word_length[] = {
-  QUICC_SCC_PSMR_CLEN(5),  // 5 bits / word (char)
-  QUICC_SCC_PSMR_CLEN(6),
-  QUICC_SCC_PSMR_CLEN(7),
-  QUICC_SCC_PSMR_CLEN(8)
-};
-
-static unsigned int scc_select_stop_bits[] = {
-  QUICC_SCC_PSMR_SB(1),   // 0.5 stop bit ??
-  QUICC_SCC_PSMR_SB(1),   // 1   stop bit
-  QUICC_SCC_PSMR_SB(2),   // 1.5 stop bit
-  QUICC_SCC_PSMR_SB(2)    // 2   stop bits
-};
-
-
-static unsigned int scc_select_parity[] = {
-  QUICC_SCC_PSMR_PE(0),                                               // No parity
-  QUICC_SCC_PSMR_PE(1)|QUICC_SCC_PSMR_TPM(2)|QUICC_SCC_PSMR_RPM(2), // Even parity
-  QUICC_SCC_PSMR_PE(1)|QUICC_SCC_PSMR_TPM(0)|QUICC_SCC_PSMR_RPM(0), // Odd parity
-  QUICC_SCC_PSMR_PE(1)|QUICC_SCC_PSMR_TPM(3)|QUICC_SCC_PSMR_RPM(3), // High (mark) parity
-  QUICC_SCC_PSMR_PE(1)|QUICC_SCC_PSMR_TPM(1)|QUICC_SCC_PSMR_RPM(1), // Low (space) parity
 };
 
 // Baud rate values, based on board clock
@@ -132,9 +108,5 @@ static cyg_int32 select_baud[] = {
 
 #define UART_BITRATE(n) (((CYGHWR_HAL_POWERPC_BOARD_SPEED*1000000)/16)/n)
 #define UART_SLOW_BITRATE(n) ((CYGHWR_HAL_POWERPC_BOARD_SPEED*1000000)/n))
-
-// Channel type select
-#define _SCC_CHAN 0
-#define _SMC_CHAN 1
 
 #endif // CYGONCE_POWERPC_QUICC_SMC_SERIAL_H

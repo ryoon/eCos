@@ -60,7 +60,7 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
     implements    CYGHWR_NET_DRIVERS
     implements    CYGHWR_NET_DRIVER_ETH0
     requires      (CYGPKG_CRC || (!(CYG_HAL_CPUTYPE == \"KS32C5000A\" )))
-    requires      (CYGINT_DEVS_ETH_ARM_KS32C5000_PHY <= 1)
+    requires      (CYGINT_DEVS_ETH_ARM_KS32C5000_PHY == 1)
 
     include_dir   net
     description   "Ethernet driver for Samsung KS32C5000"
@@ -74,20 +74,7 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
         no_define
 
         cdl_interface CYGINT_DEVS_ETH_ARM_KS32C5000_PHY {
-            display     "PHY Station Management support"
-        }
-        
-        cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_DEBUG_LEVEL {
-            display "KS32C5000 device driver debug output level"
-            flavor  data
-            legal_values {0 1 2}
-            default_value 1
-            description   "
-                This option specifies the level of debug data output by the
-                KS32C5000 device driver. A value of 0 signifies no debug data
-                output; 1 signifies normal debug data output; and 2 signifies
-                maximum debug data output (not suitable when GDB and
-                application are sharing an ethernet port)."
+            display     "PHY support"
         }
         
         cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_ICS1890 {
@@ -96,11 +83,9 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
             default_value 0
             implements CYGINT_DEVS_ETH_ARM_KS32C5000_PHY
             compile -library=libextras.a ics1890.c
-            description "This component provides support for the ICS1890 and
-                         ICS1893AF PHY"
         }
 
-        cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT970 {
+        cdl_component CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT970 {
             display     "LXT970 PHY support"
             flavor bool
             default_value 1
@@ -116,7 +101,7 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
             compile -library=libextras.a lxt972.c
             no_define
             
-            cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED1 {
+            cdl_component CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED1 {
                 display "LED 1 mode"
                 flavor  data
                 legal_values {"LINK_SPEED" "TX_ACTIVITY" "RX_ACTIVITY" "COLLISION_STATUS" "LINK_STATUS" "DUPLEX_STATUS"
@@ -126,7 +111,7 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
                 default_value {"LINK_STATUS"}
             }
                 
-            cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED2 {
+            cdl_component CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED2 {
                 display "LED 2 mode"
                 flavor  data
                 legal_values {"LINK_SPEED" "TX_ACTIVITY" "RX_ACTIVITY" "COLLISION_STATUS" "LINK_STATUS" "DUPLEX_STATUS"
@@ -136,7 +121,7 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
                 default_value {"LINK_SPEED"}
             }
 
-            cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED3 {
+            cdl_component CYGPKG_DEVS_ETH_ARM_KS32C5000_PHY_LXT972_LED3 {
                 display "LED 3 mode"
                 flavor  data
                 legal_values {"LINK_SPEED" "TX_ACTIVITY" "RX_ACTIVITY" "COLLISION_STATUS" "LINK_STATUS" "DUPLEX_STATUS"
@@ -145,14 +130,6 @@ cdl_package CYGPKG_DEVS_ETH_ARM_KS32C5000 {
                               "TEST_BLINK_SLOW"}
                 default_value {"LINK_ACTIVITY"}
             }
-        }
-
-        cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_PHYADDR {
-            display "PHY MII address"
-            flavor  data
-            legal_values 0 to 31
-            default_value 1
-            description   "This option specifies the MII address of the PHY"
         }
 
         cdl_option CYGPKG_DEVS_ETH_ARM_KS32C5000_MACADDR {

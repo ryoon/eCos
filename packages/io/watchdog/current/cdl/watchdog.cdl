@@ -53,7 +53,6 @@ cdl_package CYGPKG_IO_WATCHDOG {
     display       "Watchdog IO device"
     define_header watchdog.h
     include_dir   cyg/io
-    requires      1 == CYGINT_WATCHDOG_IMPLEMENTATIONS
     description   "
 	The watchdog IO device allows applications to make use of a
 	timer facility. Depending on the underlying hardware device
@@ -74,6 +73,7 @@ cdl_package CYGPKG_IO_WATCHDOG {
     cdl_interface CYGINT_WATCHDOG_IMPLEMENTATIONS {
         display       "Number of watchdog implementations"
         no_define
+        requires      1 == CYGINT_WATCHDOG_IMPLEMENTATIONS
     }
 
     cdl_component CYGPKG_IO_WATCHDOG_IMPLEMENTATION {
@@ -94,7 +94,7 @@ cdl_package CYGPKG_IO_WATCHDOG {
         }
 
         cdl_option CYGIMP_WATCHDOG_NONE {
-            display       "No watchdog"
+            display       "No wallclock"
             default_value 0
             implements    CYGINT_WATCHDOG_IMPLEMENTATIONS
             description   "Disables the watchdog."

@@ -771,7 +771,6 @@ synth_start_auxiliary(void)
         // current directory.
         if (':' == *path) {
             filename[j++] = '.';
-            path++;
         } else {
             while ((j < BUFSIZE) && ('\0' != *path) && (':' != *path)) {
                 filename[j++] = *path++;
@@ -1016,10 +1015,10 @@ synth_auxiliary_xchgmsg(int devid, int reqcode, int arg1, int arg2,
         request[SYNTH_REQUEST_ARG1_OFFSET + 1]      = (arg1 >>  8) & 0x0FF;
         request[SYNTH_REQUEST_ARG1_OFFSET + 2]      = (arg1 >> 16) & 0x0FF;
         request[SYNTH_REQUEST_ARG1_OFFSET + 3]      = (arg1 >> 24) & 0x0FF;
-        request[SYNTH_REQUEST_ARG2_OFFSET + 0]      = (arg2 >>  0) & 0x0FF;
-        request[SYNTH_REQUEST_ARG2_OFFSET + 1]      = (arg2 >>  8) & 0x0FF;
-        request[SYNTH_REQUEST_ARG2_OFFSET + 2]      = (arg2 >> 16) & 0x0FF;
-        request[SYNTH_REQUEST_ARG2_OFFSET + 3]      = (arg2 >> 24) & 0x0FF;
+        request[SYNTH_REQUEST_ARG2_OFFSET + 0]      = (arg1 >>  0) & 0x0FF;
+        request[SYNTH_REQUEST_ARG2_OFFSET + 1]      = (arg1 >>  8) & 0x0FF;
+        request[SYNTH_REQUEST_ARG2_OFFSET + 2]      = (arg1 >> 16) & 0x0FF;
+        request[SYNTH_REQUEST_ARG2_OFFSET + 3]      = (arg1 >> 24) & 0x0FF;
         request[SYNTH_REQUEST_TXLEN_OFFSET + 0]     = (txlen >>  0) & 0x0FF;
         request[SYNTH_REQUEST_TXLEN_OFFSET + 1]     = (txlen >>  8) & 0x0FF;
         request[SYNTH_REQUEST_TXLEN_OFFSET + 2]     = (txlen >> 16) & 0x0FF;

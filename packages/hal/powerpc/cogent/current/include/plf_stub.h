@@ -53,7 +53,9 @@
 //
 //=============================================================================
 
+#include <pkgconf/system.h>
 #include <pkgconf/hal.h>
+#include <pkgconf/hal_powerpc_cogent.h>
 
 #ifdef CYGPKG_IO_SERIAL
 #include <pkgconf/io_serial.h>

@@ -61,10 +61,6 @@
 #include <cyg/hal/hal_cache.h>
 #include CYGHWR_MEMORY_LAYOUT_H
 
-#ifdef CYGPKG_IO_ETH_DRIVERS
-#include <cyg/io/eth/eth_drv.h>            // Logical driver interfaces
-#endif
-
 #include <cyg/hal/hal_tables.h>
 
 #ifdef CYGDBG_HAL_DEBUG_GDB_INCLUDE_STUBS
@@ -136,7 +132,7 @@ extern void HAL_ARCH_PROGRAM_NEW_STACK(void *fun);
 void
 do_version(int argc, char *argv[])
 {
-#ifdef CYGPKG_REDBOOT_FLASH
+#ifdef CYGPKG_IO_FLASH
     externC void _flash_info(void);
 #endif
     char *version = CYGACC_CALL_IF_MONITOR_VERSION();
@@ -149,7 +145,7 @@ do_version(int argc, char *argv[])
     diag_printf("RAM: %p-%p, %p-%p available\n", 
                 (void*)ram_start, (void*)ram_end,
                 (void*)user_ram_start, (void *)user_ram_end);
-#ifdef CYGPKG_REDBOOT_FLASH
+#ifdef CYGPKG_IO_FLASH
     _flash_info();
 #endif
 }
@@ -424,31 +420,21 @@ return_to_redboot(int status)
 void
 do_go(int argc, char *argv[])
 {
-    int i, cur, num_options;
     unsigned long entry;
     unsigned long oldints;
     bool wait_time_set;
     int  wait_time, res;
     bool cache_enabled = false;
-#ifdef CYGPKG_IO_ETH_DRIVERS
-    bool stop_net = false;
-#endif
-    struct option_info opts[3];
+    struct option_info opts[2];
     char line[8];
-    hal_virtual_comm_table_t *__chan;
+    hal_virtual_comm_table_t *__chan = CYGACC_CALL_IF_CONSOLE_PROCS();
 
     entry = entry_address;  // Default from last 'load' operation
     init_opts(&opts[0], 'w', true, OPTION_ARG_TYPE_NUM, 
               (void **)&wait_time, (bool *)&wait_time_set, "wait timeout");
     init_opts(&opts[1], 'c', false, OPTION_ARG_TYPE_FLG, 
               (void **)&cache_enabled, (bool *)0, "go with caches enabled");
-    num_options = 2;
-#ifdef CYGPKG_IO_ETH_DRIVERS
-    init_opts(&opts[2], 'n', false, OPTION_ARG_TYPE_FLG, 
-              (void **)&stop_net, (bool *)0, "go with network driver stopped");
-    num_options++;
-#endif
-    if (!scan_opts(argc, argv, 1, opts, num_options, (void *)&entry, OPTION_ARG_TYPE_NUM, "starting address"))
+    if (!scan_opts(argc, argv, 1, opts, 2, (void *)&entry, OPTION_ARG_TYPE_NUM, "starting address"))
     {
         return;
     }
@@ -471,24 +457,8 @@ do_go(int argc, char *argv[])
             script_timeout_ms -= CYGNUM_REDBOOT_CLI_IDLE_TIMEOUT;
         }
     }
-
-    // Mask interrupts on all channels
-    cur = CYGACC_CALL_IF_SET_CONSOLE_COMM(CYGNUM_CALL_IF_SET_COMM_ID_QUERY_CURRENT);
-    for (i = 0;  i < CYGNUM_HAL_VIRTUAL_VECTOR_NUM_CHANNELS;  i++) {
-	CYGACC_CALL_IF_SET_CONSOLE_COMM(i);
-	__chan = CYGACC_CALL_IF_CONSOLE_PROCS();
-	CYGACC_COMM_IF_CONTROL( *__chan, __COMMCTL_IRQ_DISABLE );
-    }
-    CYGACC_CALL_IF_SET_CONSOLE_COMM(cur);
-
-    __chan = CYGACC_CALL_IF_CONSOLE_PROCS();
     CYGACC_COMM_IF_CONTROL(*__chan, __COMMCTL_ENABLE_LINE_FLUSH);
 
-#ifdef CYGPKG_IO_ETH_DRIVERS
-    if (stop_net)
-	eth_drv_stop();
-#endif
-	
     HAL_DISABLE_INTERRUPTS(oldints);
     HAL_DCACHE_SYNC();
     if (!cache_enabled) {
@@ -552,7 +522,7 @@ set_comm_baud_rate(hal_virtual_comm_table_t *chan, int rate)
 int
 set_console_baud_rate(int rate)
 {
-    int ret = -1;
+    int ret;
 #ifdef CYGPKG_REDBOOT_ANY_CONSOLE
     if (!console_selected) {
         int cur = CYGACC_CALL_IF_SET_CONSOLE_COMM(CYGNUM_CALL_IF_SET_COMM_ID_QUERY_CURRENT);

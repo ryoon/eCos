@@ -107,7 +107,9 @@ bool ecAboutDialog::AddControls(wxWindow* parent)
     }
 
     // Customize the HTML
-    htmlText.Replace(wxT("$VERSION$"), ecCONFIGURATION_TOOL_VERSION);
+    wxString verString;
+    verString.Printf("%.2f", ecCONFIGURATION_TOOL_VERSION);
+    htmlText.Replace(wxT("$VERSION$"), verString);
     htmlText.Replace(wxT("$DATE$"), __DATE__);
     
     wxSize htmlSize(420, 390);

@@ -1,18 +1,3 @@
-2003-03-28  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/if_quicc.c: Align data buffers on cache boundary.
-
-2003-03-14  Nick Garnett  <nickg@calivar.com>
-
-	* src/if_quicc.c: Fixed several bugs, mostly dealing with getting
-	the device restarted after certain failures such as collisions.
-
-	* src/quicc_eth.h: Added some statistics gathering.
-	
-2003-03-06  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/if_quicc.c (quicc_eth_init): New name for CPM/DPRAM allocator.
-
 2002-11-25  Gary Thomas  <gthomas@ecoscentric.com>
 
 	* src/quicc_eth.h: 

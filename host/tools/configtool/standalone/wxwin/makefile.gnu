@@ -4,42 +4,42 @@
 
 # Usage:
 #   cd emptydir
-#   make -f /path/to/this/makefile WXDIR=/path/to/wx/installation INSTALLDIR=/path/to/ecos/tools [ ECOSSRCDIR=/path/to/ecos/tools/src ] [ TCLDIR=/path/to/tcl/installation ] [ OSTYPE=cygwin ] [ DEBUG=1 ]
+#   make -f /path/to/this/makefile WXDIR=/path/to/wx/installation ECOSSRCDIR=/path/to/ecos/tools/src OSTYPE=$OSTYPE
 
-INSTALLDIR=INSTALLDIR_not_defined
 WXDIR=WXDIR_not_defined
+ECOSSRCDIR=ECOSSRCDIR_not_defined
 
 CTBUILDDIR=$(shell pwd)
-ECOSSRCDIR=$(INSTALLDIR)/src
 CTDIR=$(ECOSSRCDIR)/tools/configtool/standalone/wxwin
-TCLDIR=TCLDIR_use_system
+INSTALLDIR=$(ECOSSRCDIR)/..
+LEVEL=release
 USEEXPERIMENTALCODE=1
 
 EXTRACPPFLAGS=\
-  -I$(TCLDIR)/include \
   -I$(INSTALLDIR)/include \
   -I$(ECOSSRCDIR)/tools/configtool/common/common \
   -I$(ECOSSRCDIR)/tools/Utils/common \
   -I$(ECOSSRCDIR)/tools/ecostest/common \
   -DecUSE_EXPERIMENTAL_CODE=$(USEEXPERIMENTALCODE)
-EXTRALDFLAGS=-L$(TCLDIR)/lib -L$(INSTALLDIR)/lib -lcdl -lcyginfra -ltcl
 
 ifeq "$(OSTYPE)" "cygwin"
   PROGRAM=configtool.exe
-  CPPFLAGS=`$(WXDIR)/bin/wx-config --cppflags` -D_WIN32 -D__WIN32__ -DSTRICT
-  LDFLAGS=`$(WXDIR)/bin/wx-config --libs` -lshlwapi -Wl,--subsystem,windows
+  CPPFLAGS=-I$(WXDIR)/include -I$(WXDIR)/lib/wx/include -DSTRICT -DWINVER=0x0400 -D_WIN32 -D__GNUWIN32__ -D__WIN95__ -D__WIN32__ -D_X86_=1 -DWIN32
+  LDFLAGS=-L$(WXDIR)/lib -lwx -lstdc++ -lwinspool -lwinmm -lshell32 -lcomctl32 -lctl3d32 -ladvapi32 -lwsock32 -lglu32 -lgdi32 -lcomdlg32 -lole32 -luuid -lshlwapi -lpng -lzlib
+  EXTRALDFLAGS=-L$(INSTALLDIR)/lib -lcdl -lcyginfra -lcygtcl83
   EXTRAOBJECTS=$(CTBUILDDIR)/configtoolres.o
 else
   PROGRAM=configtool
-  CPPFLAGS=`$(WXDIR)/bin/wx-config --cppflags`
-  LDFLAGS=`$(WXDIR)/bin/wx-config --libs`
+  CPPFLAGS=-I$(WXDIR)/include -I$(WXDIR)/lib/wx/include -DGTK_NO_CHECK_CASTS -D__WXGTK__
+  LDFLAGS=-L$(WXDIR)/lib -L/usr/lib -L/usr/X11R6/lib -lwx_gtk -lgtk -lgdk -rdynamic -lgmodule -lgthread -lglib -lpthread -ldl -lXi -lXext -lX11 -lm
+  EXTRALDFLAGS=-L$(INSTALLDIR)/lib -lcdl -lcyginfra -ltcl
   EXTRAOBJECTS=
 endif
 
-ifeq "$(DEBUG)" ""
+ifneq "$(LEVEL)" "debug"
   CPPDEBUGOPTIONS=-O2
 else
-  CPPDEBUGOPTIONS=-ggdb
+  CPPDEBUGOPTIONS=-D__WXDEBUG__ -ggdb
 endif
 
 OBJECTS = \
@@ -117,7 +117,7 @@ install: $(CTBUILDDIR)/$(PROGRAM)
 	$(CC) $(CPPDEBUGOPTIONS) -c $(EXTRACPPFLAGS) $(CPPFLAGS) -o $@ $<
 
 $(CTBUILDDIR)/configtoolres.o: $(CTDIR)/configtool.rc
-	$(RESCOMP) -i $< -o $@ --preprocessor "$(CC) -c -E -xc-header -DRC_INVOKED" --include-dir $(WXDIR)/include --include-dir $(CTDIR) --define __GNUWIN32__
+	$(RESCOMP) -i $< -o $@ --preprocessor "$(CC) -c -E -xc-header -DRC_INVOKED" --include-dir $(WXDIR)/include --include-dir $(CTDIR) --define __WIN32__ --define __WIN95__ --define __GNUWIN32__
 
 clean:
 	rm -f $(CTBUILDDIR)/$(PROGRAM) $(CTBUILDDIR)/*.o

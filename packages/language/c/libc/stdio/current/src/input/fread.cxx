@@ -109,10 +109,8 @@ fread( void *ptr, size_t object_size, size_t num_objects, FILE *stream )
     } // while
 
     if (err) {
-        if (err != EAGAIN) {
-            real_stream->set_error( err );
-            errno = err;
-        }
+        real_stream->set_error( err );
+        errno = err;
     } // if
     
     // we return the number of _objects_ read. Simple division is

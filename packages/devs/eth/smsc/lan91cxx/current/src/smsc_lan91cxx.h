@@ -63,7 +63,7 @@
 //==========================================================================
 
 #include <cyg/hal/hal_io.h>
-#include <cyg/hal/hal_endian.h>
+
 
 #define LAN91CXX_TCR         0x00
 #define LAN91CXX_EPH_STATUS  0x01
@@ -301,9 +301,6 @@ struct smsc_lan91cxx_stats {
 };
 #endif
 
-struct lan91cxx_priv_data;
-typedef cyg_bool (*provide_esa_t)(struct lan91cxx_priv_data* cpd);
-
 typedef struct lan91cxx_priv_data {
     int txbusy;                         // A packet has been sent
     unsigned long txkey;                // Used to ack when packet sent
@@ -316,14 +313,8 @@ typedef struct lan91cxx_priv_data {
     int interrupt;                      // Interrupt vector used by controller
     unsigned char enaddr[6];            // Controller ESA
     // Function to configure the ESA - may fetch ESA from EPROM or 
-    // RedBoot config option.  Use of the 'config_enaddr()' function
-    // is depreciated in favor of the 'provide_esa()' function and
-    // 'hardwired_esa' boolean
+    // RedBoot config option.
     void (*config_enaddr)(struct lan91cxx_priv_data* cpd);
-    // New function to fetch the ESA from flash via RedBoot
-    // (see devs_eth_innovator.inl)
-    provide_esa_t provide_esa;
-    bool hardwired_esa;
     int txpacket;
     int rxpacket;
     int within_send;
@@ -351,10 +342,8 @@ get_reg(struct eth_drv_sc *sc, int regno)
         (struct lan91cxx_priv_data *)sc->driver_private;
     unsigned short val;
     
-    HAL_WRITE_UINT16(cpd->base+(LAN91CXX_BS << cpd->addrsh), CYG_CPU_TO_LE16(regno>>3));
+    HAL_WRITE_UINT16(cpd->base+(LAN91CXX_BS << cpd->addrsh), regno>>3);
     HAL_READ_UINT16(cpd->base+((regno&0x7) << cpd->addrsh), val);
-    val = CYG_LE16_TO_CPU(val);
-
 #if DEBUG & 2
     diag_printf("read reg %d val 0x%04x\n", regno, val);
 #endif
@@ -369,8 +358,8 @@ put_reg(struct eth_drv_sc *sc, int regno, unsigned short val)
     struct lan91cxx_priv_data *cpd =
         (struct lan91cxx_priv_data *)sc->driver_private;
 	
-    HAL_WRITE_UINT16(cpd->base+(LAN91CXX_BS << cpd->addrsh), CYG_CPU_TO_LE16(regno>>3));
-    HAL_WRITE_UINT16(cpd->base+((regno&0x7) << cpd->addrsh), CYG_CPU_TO_LE16(val));
+    HAL_WRITE_UINT16(cpd->base+(LAN91CXX_BS << cpd->addrsh), regno>>3);
+    HAL_WRITE_UINT16(cpd->base+((regno&0x7) << cpd->addrsh), val);
 
 #if DEBUG & 2
     diag_printf("write reg %d val 0x%04x\n", regno, val);
@@ -427,7 +416,6 @@ get_banksel(struct eth_drv_sc *sc)
     unsigned short val;
     
     HAL_READ_UINT16(cpd->base+(LAN91CXX_BS << cpd->addrsh), val);
-    val = CYG_LE16_TO_CPU(val);
 #if DEBUG & 2
     diag_printf("read bank val 0x%04x\n", val);
 #endif
@@ -444,7 +432,7 @@ put_att(struct eth_drv_sc *sc, int offs, unsigned char val)
     struct lan91cxx_priv_data *cpd =
         (struct lan91cxx_priv_data *)sc->driver_private;
 	
-    HAL_WRITE_UINT8(cpd->attbase + (offs << cpd->addrsh), CYG_CPU_TO_LE16(val));
+    HAL_WRITE_UINT8(cpd->attbase + (offs << cpd->addrsh), val);
 
 #if DEBUG & 2
     diag_printf("write attr %d val 0x%02x\n", offs, val);
@@ -460,7 +448,6 @@ get_att(struct eth_drv_sc *sc, int offs)
     unsigned char val;
     
     HAL_READ_UINT8(cpd->attbase + (offs << cpd->addrsh), val);
-    val = CYG_LE16_TO_CPU(val);
 #if DEBUG & 2
     diag_printf("read attr %d val 0x%02x\n", offs, val);
 #endif

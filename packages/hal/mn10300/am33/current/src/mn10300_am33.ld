@@ -7,7 +7,6 @@
 //####ECOSGPLCOPYRIGHTBEGIN####
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
-// Copyright (C) 2003 Bart Veer
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 //
 // eCos is free software; you can redistribute it and/or modify it under
@@ -45,11 +44,7 @@ ENTRY(reset_vector)
 #ifdef EXTRAS
 INPUT(extras.o)
 #endif
-#if (__GNUC__ >= 3)
-GROUP(libtarget.a libgcc.a libsupc++.a)
-#else
 GROUP(libtarget.a libgcc.a)
-#endif
 
 
 #define ALIGN_LMA 4
@@ -113,7 +108,6 @@ GROUP(libtarget.a libgcc.a)
     __DTOR_LIST__ = ABSOLUTE (.); KEEP (*(SORT (.dtors*))) __DTOR_END__ = ABSOLUTE (.); \
     _GOT_START = ABSOLUTE (.); _GLOBAL_OFFSET_TABLE_ = ABSOLUTE (.) + 32768; _SDA_BASE_ = ABSOLUTE (.); \
     *(.got.plt) *(.got) _GOT_END_ = ABSOLUTE (.); \
-    *(.eh_frame) \
     *(.dynamic) *(.sdata*) *(.sbss*) } \
     > _region_ \
     __rom_data_start = LOADADDR (.data); \
@@ -126,31 +120,7 @@ GROUP(libtarget.a libgcc.a)
     __bss_end = ABSOLUTE (.); } \
     > _region_
 
-#define SECTIONS_END . = ALIGN(4); _end = .; PROVIDE (end = .);	\
-  .stab 0 : { *(.stab) }			\
-  .stabstr 0 : { *(.stabstr) }			\
-  .stab.excl 0 : { *(.stab.excl) }		\
-  .stab.exclstr 0 : { *(.stab.exclstr) }	\
-  .stab.index 0 : { *(.stab.index) }		\
-  .stab.indexstr 0 : { *(.stab.indexstr) }	\
-  .comment 0 : { *(.comment) }			\
-  .debug          0 : { *(.debug) }		\
-  .line           0 : { *(.line) }		\
-  .debug_srcinfo  0 : { *(.debug_srcinfo) }	\
-  .debug_sfnames  0 : { *(.debug_sfnames) }	\
-  .debug_aranges  0 : { *(.debug_aranges) }	\
-  .debug_pubnames 0 : { *(.debug_pubnames) }	\
-  .debug_info     0 : { *(.debug_info) }	\
-  .debug_abbrev   0 : { *(.debug_abbrev) }	\
-  .debug_line     0 : { *(.debug_line) }	\
-  .debug_frame    0 : { *(.debug_frame) }	\
-  .debug_str      0 : { *(.debug_str) }		\
-  .debug_loc      0 : { *(.debug_loc) }		\
-  .debug_macinfo  0 : { *(.debug_macinfo) }	\
-  .debug_weaknames 0 : { *(.debug_weaknames) }	\
-  .debug_funcnames 0 : { *(.debug_funcnames) }	\
-  .debug_typenames 0 : { *(.debug_typenames) }	\
-  .debug_varnames  0 : { *(.debug_varnames) }
+#define SECTIONS_END . = ALIGN(4); _end = .; PROVIDE (end = .);
 
 #include CYGHWR_MEMORY_LAYOUT_LDI
 

@@ -70,35 +70,33 @@ externC void plf_hardware_init(void);
 
 void hal_hardware_init(void)
 {
-    hal_xscale_core_init();
+	hal_xscale_core_init();
 
-    *PXA2X0_ICMR = 0;           // IRQ Mask
-    *PXA2X0_ICLR = 0;           // Route interrupts to IRQ
+    *PXA2X0_ICMR = 0;			// IRQ Mask
+    *PXA2X0_ICLR = 0;			// Route interrupts to IRQ
     *PXA2X0_ICCR = 1;
 
-    *PXA2X0_GRER0 = 0;          // Disable rising edge detect
-    *PXA2X0_GRER1 = 0;
-    *PXA2X0_GRER2 = 0;
+	*PXA2X0_GRER0 = 0;			// Disable rising edge detect
+	*PXA2X0_GRER1 = 0;
+	*PXA2X0_GRER2 = 0;
 
-    *PXA2X0_GFER0 = 0;          // Disable falling edge detect
-    *PXA2X0_GFER1 = 0;
-    *PXA2X0_GFER2 = 0;
+	*PXA2X0_GFER0 = 0;			// Disable falling edge detect
+	*PXA2X0_GFER1 = 0;
+	*PXA2X0_GFER2 = 0;
 
-    *PXA2X0_GEDR0 = 0xffffffff; // Clear edge detect status
-    *PXA2X0_GEDR1 = 0xffffffff;
-    *PXA2X0_GEDR2 = 0x0001ffff;
+	*PXA2X0_GEDR0 = 0xffffffff;	// Clear edge detect status
+	*PXA2X0_GEDR1 = 0xffffffff;
+	*PXA2X0_GEDR2 = 0x0001ffff;
 
-    plf_hardware_init();        // Perform any platform specific initializations
+	plf_hardware_init();		// Perform any platform specific initializations
 
-    *PXA2X0_OSCR = 0;           // Let the "OS" counter run
-    *PXA2X0_OSMR0 = 0;
+	*PXA2X0_OSCR = 0;			// Let the "OS" counter run
+	*PXA2X0_OSMR0 = 0;
 
-#ifdef CYGSEM_HAL_ENABLE_DCACHE_ON_STARTUP
-    HAL_DCACHE_ENABLE();        // Enable caches
-#endif
-#ifdef CYGSEM_HAL_ENABLE_ICACHE_ON_STARTUP
-    HAL_ICACHE_ENABLE();
-#endif
+	hal_if_init();				// Set up eCos/ROM interfaces
+
+	HAL_DCACHE_ENABLE();		// Enable caches
+	HAL_ICACHE_ENABLE();
 }
 
 // Initialize the clock
@@ -166,15 +164,15 @@ int hal_IRQ_handler(void)
 {
     cyg_uint32 sources, index;
 
-    sources = *PXA2X0_ICIP;
-
 #ifdef HAL_EXTENDED_IRQ_HANDLER
     // Use platform specific IRQ handler, if defined
     // Note: this macro should do a 'return' with the appropriate
     // interrupt number if such an extended interrupt exists.  The
     // assumption is that the line after the macro starts 'normal' processing.
-    HAL_EXTENDED_IRQ_HANDLER(sources);
+    HAL_EXTENDED_IRQ_HANDLER(index);
 #endif
+
+    sources = *PXA2X0_ICIP;
 
     if ( sources & 0xff0000 )
         index = 16;
@@ -258,7 +256,7 @@ void hal_interrupt_unmask(int vector)
 void hal_interrupt_acknowledge(int vector)
 {
 
-#ifdef HAL_EXTENDED_INTERRUPT_ACKNOWLEDGE
+#ifdef HAL_EXTENDED_INTERRUPT_UNMASK
     // Use platform specific handling, if defined
     // Note: this macro should do a 'return' for "extended" values of 'vector'
     // Normal vectors are handled by code subsequent to the macro call.

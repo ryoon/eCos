@@ -10,7 +10,6 @@
 // This file is part of eCos, the Embedded Configurable Operating System.
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 // Copyright (C) 2002 Gary Thomas
-// Copyright (C) 2003 Nick Garnett <nickg@calivar.com>
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -53,7 +52,7 @@
 //#####DESCRIPTIONBEGIN####
 //
 // Author(s):    gthomas
-// Contributors: gthomas, nickg
+// Contributors: gthomas
 // Date:         2000-01-10
 // Purpose:      
 // Description:  
@@ -76,35 +75,6 @@ struct quicc_eth_info {
     int                             txsize, rxsize;  // Length of individual buffers
     int                             txactive;        // Count of active Tx buffers
     unsigned long                   txkey[CYGNUM_DEVS_ETH_POWERPC_QUICC_TxNUM];
-
-    // Keep some statistics
-    cyg_uint32 interrupts;
-
-    cyg_uint32 rx_count;
-    cyg_uint32 rx_deliver;
-    cyg_uint32 rx_resource;
-    cyg_uint32 rx_restart;
-    cyg_uint32 rx_good;
-    cyg_uint32 rx_crc_errors;
-    cyg_uint32 rx_align_errors;
-    cyg_uint32 rx_resource_errors;
-    cyg_uint32 rx_overrun_errors;
-    cyg_uint32 rx_collisions;
-    cyg_uint32 rx_short_frames;
-    cyg_uint32 rx_long_frames;
-    cyg_uint32 rx_miss;
-
-    cyg_uint32 tx_count;
-    cyg_uint32 tx_complete;
-    cyg_uint32 tx_restart;
-    cyg_uint32 tx_good;
-    cyg_uint32 tx_dropped;
-    cyg_uint32 tx_underrun;
-    cyg_uint32 tx_late_collisions;
-    cyg_uint32 tx_carrier_loss;
-    cyg_uint32 tx_retransmit_error;
-    cyg_uint32 tx_heartbeat_loss;
-    cyg_uint32 tx_deferred;    
 };
 
 // SCC registers - ethernet mode
@@ -175,11 +145,6 @@ struct quicc_eth_info {
 #define QUICC_BD_RX_OV              0x0002  // Rx overrun
 #define QUICC_BD_RX_CL              0x0001  // Collision during frame  
 
-#define QUICC_BD_RX_ERRORS          ( QUICC_BD_RX_CL | QUICC_BD_RX_OV | \
-                                      QUICC_BD_RX_CR | QUICC_BD_RX_SH | \
-                                      QUICC_BD_RX_NO | QUICC_BD_RX_LG | \
-                                      QUICC_BD_RX_MISS )
-
 // Transmit buffer status
 #define QUICC_BD_TX_PAD             0x4000  // Pad short packets
 #define QUICC_BD_TX_LAST            0x0800  // Last buffer in chain
@@ -191,10 +156,6 @@ struct quicc_eth_info {
 #define QUICC_BD_TX_RC              0x003C  // Retry count
 #define QUICC_BD_TX_UN              0x0002  // Tx underrun
 #define QUICC_BD_TX_CSL             0x0001  // Carrier lost
-
-#define QUICC_BD_TX_ERRORS          (QUICC_BD_TX_CSL | QUICC_BD_TX_UN | \
-                                     QUICC_BD_TX_RL | QUICC_BD_TX_LC  | \
-                                     QUICC_BD_TX_HB | QUICC_BD_TX_DEF )
 
 #include CYGDAT_DEVS_QUICC_ETH_INL  // Platform specifics
 

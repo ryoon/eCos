@@ -9,7 +9,6 @@
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
-// Copyright (C) 2003 Gary Thomas
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -344,7 +343,7 @@ serial_write(cyg_io_handle_t handle, const void *_buf, cyg_uint32 *len)
                     if (!cbuf->blocking) {
                         *len -= size;   // number of characters actually sent
                         cbuf->waiting = false;
-                        res = size == 0 ? -EAGAIN : ENOERR;
+                        res = -EAGAIN;
                         break;
                     }
 #endif // CYGOPT_IO_SERIAL_SUPPORT_NONBLOCKING
@@ -441,7 +440,7 @@ serial_read(cyg_io_handle_t handle, void *_buf, cyg_uint32 *len)
 #ifdef CYGOPT_IO_SERIAL_SUPPORT_NONBLOCKING
                 if (!cbuf->blocking) {
                     *len = size;        // characters actually read
-                    res = size == 0 ? -EAGAIN : ENOERR;
+                    res = -EAGAIN;
                     break;
                 }
 #endif // CYGOPT_IO_SERIAL_SUPPORT_NONBLOCKING
@@ -617,11 +616,6 @@ serial_get_config(cyg_io_handle_t handle, cyg_uint32 key, void *xbuf,
             in_cbuf->waiting = false;
         }
         in_cbuf->get = in_cbuf->put = in_cbuf->nb = 0;  // Flush buffered input
-
-        // Pass to the hardware driver in case it wants to flush FIFOs etc.
-        (funs->set_config)(chan,
-                           CYG_IO_SET_CONFIG_SERIAL_INPUT_FLUSH,
-                           NULL, NULL);
         cyg_drv_dsr_unlock();
         cyg_drv_mutex_unlock(&in_cbuf->lock);
         break;
@@ -648,10 +642,6 @@ serial_get_config(cyg_io_handle_t handle, cyg_uint32 key, void *xbuf,
             out_cbuf->get = out_cbuf->put = out_cbuf->nb = 0;  // Empties queue!
             (funs->stop_xmit)(chan);  // Done with transmit
         }
-        // Pass to the hardware driver in case it wants to flush FIFOs etc.
-        (funs->set_config)(chan,
-                           CYG_IO_SET_CONFIG_SERIAL_OUTPUT_FLUSH,
-                           NULL, NULL);
         if (out_cbuf->waiting) {
             out_cbuf->abort = true;
             cyg_drv_cond_signal(&out_cbuf->wait);

@@ -1,31 +1,3 @@
-2003-03-03  Jonathan Larmour  <jifl@eCosCentric.com>
-
-	* tests/fptest.c: Make all variables static to avoid any risk
-	of collisions with symbols defined elsewhere in eCos.
-
-2003-02-27  Jonathan Larmour  <jifl@eCosCentric.com>
-
-	* include/kapidata.h: Revert change of 2001-08-23 and instead make
-	it conditional on the GCC version. Also add comments explaining why
-	this file has been apparently obfuscated.
-
-2003-02-25  Nick Garnett  <nickg@calivar.com>
-
-	* tests/fptest.c (alarm_fn): Added CYG_TEST_PASS() call to keep
-	configtool happy.
-
-2003-02-24  Jonathan Larmour  <jifl@eCosCentric.com>
-
-	* cdl/kernel.cdl: Update doc links.
-	* cdl/synch.cdl: Ditto.
-	* cdl/thread.cdl: Ditto.
-
-2003-02-19  Nick Garnett  <nickg@calivar.com>
-
-	* tests/fptest.c: Changed to run for a constant time rather than a
-	constant number of iterations, with a shorter run time for
-	simulated targets.
-
 2003-02-10  Gary Thomas  <gary@mlbassoc.com>
 
 	* include/thread.inl: Add more debug info to thread stack checking.

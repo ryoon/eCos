@@ -33,6 +33,8 @@
 // This exception does not invalidate any other reasons why a work based on
 // this file might be covered by the GNU General Public License.
 //
+// Alternative licenses for eCos may be arranged by contacting Red Hat, Inc.
+// at http://sources.redhat.com/ecos/ecos-license/
 // -------------------------------------------
 //####ECOSGPLCOPYRIGHTEND####
 //==========================================================================
@@ -70,42 +72,20 @@
     (CYGNUM_KERNEL_SCHED_PRIORITIES > 12)
 
 //==========================================================================
-// Base priority for all threads.
+// Multiplier for loop counter. This allows us to tune the runtime of
+// the whole program easily. The current value gives a runtime of
+// about 90s on an 800Mz Pentium III.
 
-#define BASE_PRI        5
-
-//==========================================================================
-// Runtime
-//
-// This is the number of ticks that the program will run for. 3000
-// ticks is equal to 30 seconds in the default configuration. For
-// simulators we reduce the run time to 3 simulated seconds.
-
-#define RUN_TICKS       3000
-#define RUN_TICKS_SIM   300
+#define MULTIPLIER 100
 
 //==========================================================================
 // Thread parameters
 
-#define STACK_SIZE (CYGNUM_HAL_STACK_SIZE_MINIMUM)
+#define STACK_SIZE (CYGNUM_HAL_STACK_SIZE_MINIMUM+4096)
 
-static cyg_uint8 stacks[3][STACK_SIZE];
-static cyg_handle_t thread[3];
-static cyg_thread thread_struct[3];
-
-//==========================================================================
-// Alarm parameters.
-
-static cyg_alarm alarm_struct;
-static cyg_handle_t alarm;
-
-static cyg_count8 cur_thread = 0;
-static cyg_count32 alarm_ticks = 0;
-static cyg_count32 run_ticks = RUN_TICKS;
-
-//==========================================================================
-
-static int errors = 0;
+cyg_uint8 stacks[3][STACK_SIZE];
+cyg_handle_t thread[3];
+cyg_thread thread_struct[3];
 
 //==========================================================================
 // Random number generator. Ripped out of the C library.
@@ -138,22 +118,19 @@ static int rand( unsigned int *seed )
 // spilling values out to memory.
 
 static void do_test( double *values,
-                     int count,
-                     int loops,
-                     int test,
-                     const char *name)
+                    int count,
+                    int loops,
+                    char *name)
 {
-    unsigned int i, j;
-    // volatiles necessary to force
-    // values to 64 bits for comparison
-    volatile double sum = 1.0;
-    volatile double last_sum;
+    int i, j;
+    double sum = 1.0;
+    double last_sum;
     unsigned int seed;
-    
+
 #define V(__i) (values[(__i)%count])
 #define CALC ((V(i-1)*V(i+1))*(V(i-2)*V(i+2))*(V(i-3)*sum))
 
-    seed = ((unsigned int)&i)*count;
+    seed = ((unsigned int)&i)*loops*count;
 
     // Set up an array of values...
     for( i = 0; i < count; i++ )
@@ -165,96 +142,100 @@ static void do_test( double *values,
     last_sum = sum;
     
     // Now recalculate the sum in a loop and look for errors
-    for( j = 0; j < loops ; j++ )
+    for( j = 0; j < loops; j++ )
     {
         sum = 1.0;
         for( i = 0; i < count; i++ )
             sum += CALC;
 
         if( sum != last_sum )
-        {
-            errors++;
-            diag_printf("%s: Sum mismatch! %d sum=[%08x:%08x] last_sum=[%08x:%08x]\n",
-                        name,j,
-                        ((cyg_uint32 *)&sum)[0],((cyg_uint32 *)&sum)[1],
-                        ((cyg_uint32 *)&last_sum)[0],((cyg_uint32 *)&last_sum)[1]
-                        );
-        }
-        
-#if 0
-        if( ((j*count)%1000000) == 0 )
-            diag_printf("INFO:<%s: %2d calculations done>\n",name,j*count);
-#endif
+            diag_printf("%s: Sum mismatch! %d\n",name,j);
+
+        last_sum = sum;
     }
 
 }
 
 //==========================================================================
-// Alarm handler
-//
-// This is called every tick. It lowers the priority of the currently
-// running thread and raises the priority of the next. Thus we
-// implement a form of timelslicing between the threads at one tick
-// granularity.
 
-static void alarm_fn(cyg_handle_t alarm, cyg_addrword_t data)
-{
-    alarm_ticks++;
+volatile int done[4];
 
-    if( alarm_ticks >= run_ticks )
-    {
-        if( errors )
-            CYG_TEST_FAIL("Errors detected");
-        else
-            CYG_TEST_PASS("OK");            
-        
-        CYG_TEST_FINISH("FP Test done");
-    }
-    else
-    {
-        cyg_thread_set_priority( thread[cur_thread], BASE_PRI );
-
-        cur_thread = (cur_thread+1)%3;
-
-        cyg_thread_set_priority( thread[cur_thread], BASE_PRI-1 );
-    }
-}
-
+volatile cyg_tick_count_t start, end;
 
 //==========================================================================
 
 #define FP1_COUNT 1000
+#define FP1_LOOPS 1000*MULTIPLIER
 
 static double fpt1_values[FP1_COUNT];
 
 void fptest1( CYG_ADDRWORD id )
 {
-    while(1)
-        do_test( fpt1_values, FP1_COUNT, 2000000000, id, "fptest1" );
+    diag_printf("fptest1: start\n");
+    
+    do_test( &fpt1_values, FP1_COUNT, FP1_LOOPS, "fptest1" );
+
+    done[id] = 1;
+    
+    diag_printf("fptest1: done\n");
 }
 
 //==========================================================================
 
 #define FP2_COUNT 10000
+#define FP2_LOOPS 100*MULTIPLIER
 
 static double fpt2_values[FP2_COUNT];
 
 void fptest2( CYG_ADDRWORD id )
 {
-    while(1)
-        do_test( fpt2_values, FP2_COUNT, 2000000000, id, "fptest2" );
+    diag_printf("fptest2: start\n");
+    
+    do_test( &fpt2_values, FP2_COUNT, FP2_LOOPS, "fptest2" );
+
+    done[id] = 1;
+    
+    diag_printf("fptest2: done\n");
 }
 
 //==========================================================================
 
-#define FP3_COUNT 100
+#define FP3_COUNT 10000
+#define FP3_LOOPS 100*MULTIPLIER
 
 static double fpt3_values[FP3_COUNT];
 
 void fptest3( CYG_ADDRWORD id )
 {
-    while(1)
-        do_test( fpt3_values, FP3_COUNT, 2000000000, id, "fptest3" );
+    int all_done;
+    
+    diag_printf("fptest3: start\n");
+    
+    do_test( &fpt3_values, FP3_COUNT, FP3_LOOPS, "fptest3" );
+
+    done[id] = 1;
+    
+    diag_printf("fptest3: done\n");
+
+    // Spin here waiting for the other threads to finish. We should
+    // only wake up and test every third or second timeslice.
+    do {
+        int i;
+
+        cyg_thread_yield();
+        
+        all_done = 0;
+        for( i = 0; i < 4; i++ )
+            all_done += done[i];
+        
+    } while(all_done != 4 );
+
+    end = cyg_current_time();
+
+    diag_printf("Elapsed time %d ticks\n",end-start);
+    
+    CYG_TEST_PASS_FINISH("FP Test OK");
+    
 }
 
 //==========================================================================
@@ -264,18 +245,14 @@ void fptest_main( void )
     
     CYG_TEST_INIT();
 
-    if( cyg_test_is_simulator )
-    {
-        run_ticks = RUN_TICKS_SIM;
-    }
-
-    CYG_TEST_INFO("Run fptest in cyg_start");
-    do_test( fpt3_values, FP3_COUNT, 1000, 0, "start" );
-    CYG_TEST_INFO( "cyg_start run done");
+    start = cyg_current_time();
     
-    cyg_thread_create( BASE_PRI-1,
+    diag_printf("Run fptest1 in cyg_start\n");
+    fptest1( 0 );
+    
+    cyg_thread_create( 5,
                        fptest1,
-                       0,
+                       1,
                        "fptest1",
                        &stacks[0][0],
                        STACK_SIZE,
@@ -284,9 +261,9 @@ void fptest_main( void )
 
     cyg_thread_resume( thread[0] );
 
-    cyg_thread_create( BASE_PRI,
+    cyg_thread_create( 5,
                        fptest2,
-                       1,
+                       2,
                        "fptest2",
                        &stacks[1][0],
                        STACK_SIZE,
@@ -295,9 +272,9 @@ void fptest_main( void )
 
     cyg_thread_resume( thread[1] );
 
-    cyg_thread_create( BASE_PRI,
+    cyg_thread_create( 5,
                        fptest3,
-                       2,
+                       3,
                        "fptest3",
                        &stacks[2][0],
                        STACK_SIZE,
@@ -305,14 +282,6 @@ void fptest_main( void )
                        &thread_struct[2]);
 
     cyg_thread_resume( thread[2] );
-
-    cyg_alarm_create( cyg_real_time_clock(),
-                      alarm_fn,
-                      0,
-                      &alarm,
-                      &alarm_struct );
-
-    cyg_alarm_initialize( alarm, cyg_current_time()+1, 1 );
     
     cyg_scheduler_start();
 

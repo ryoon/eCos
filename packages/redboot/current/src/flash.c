@@ -8,7 +8,7 @@
 //####ECOSGPLCOPYRIGHTBEGIN####
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
-// Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Red Hat, Inc.
+// Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -1218,7 +1218,6 @@ do_flash_init(void)
             fis_addr = (void *)((CYG_ADDRESS)flash_start + 
                                 (CYGNUM_REDBOOT_FIS_DIRECTORY_BLOCK*flash_block_size));
         }
-		memcpy(fis_work_block, fis_addr, flash_block_size);
 #endif
         __flash_init = 1;
     }
@@ -1403,11 +1402,6 @@ get_config(unsigned char *dp, char *title, int list_opt, char *newvalue )
             if (esa_ptr < (sizeof(enet_addr_t)-1)) lp += diag_sprintf(lp, ":");
         }
         break;
-#if defined(CYGHWR_NET_DRIVERS) && (CYGHWR_NET_DRIVERS > 1)
-    case CONFIG_NETPORT:
-        lp += diag_sprintf(lp, "%s", (unsigned char *)val_ptr);
-        break;
-#endif
 #endif
     case CONFIG_STRING:
         lp += diag_sprintf(lp, "%s", (unsigned char *)val_ptr);
@@ -1507,19 +1501,6 @@ get_config(unsigned char *dp, char *title, int list_opt, char *newvalue )
         }
         return CONFIG_CHANGED;
         break;
-#if defined(CYGHWR_NET_DRIVERS) && (CYGHWR_NET_DRIVERS > 1)
-    case CONFIG_NETPORT:
-	if (strlen(line) >= MAX_STRING_LENGTH || net_devindex(line) < 0) {
-	    int index;
-	    const char *name;
-	    diag_printf("Sorry, Port name must be one of:\n");
-	    for (index = 0; name = net_devname(index); index++)
-		diag_printf("    %s\n", name);
-            return CONFIG_BAD;
-	}
-        strcpy((unsigned char *)val_ptr, line);
-	break;
-#endif
 #endif
     case CONFIG_SCRIPT:
         // Assume it always changes
@@ -1568,10 +1549,6 @@ config_length(int type)
         // Would like this to be sizeof(enet_addr_t), but that causes much
         // pain since it fouls the alignment of data which follows.
         return 8;
-#if defined(CYGHWR_NET_DRIVERS) && (CYGHWR_NET_DRIVERS > 1)
-    case CONFIG_NETPORT:
-        return MAX_STRING_LENGTH;
-#endif
 #endif
     case CONFIG_STRING:
         return MAX_STRING_LENGTH;
@@ -1984,21 +1961,6 @@ flash_config_insert_value(unsigned char *dp, struct config_option *opt)
     case CONFIG_ESA:
         memcpy(dp, (void *)&opt->dflt, sizeof(enet_addr_t));
         break;
-#if defined(CYGHWR_NET_DRIVERS) && (CYGHWR_NET_DRIVERS > 1)
-    case CONFIG_NETPORT:
-	// validate dflt and if not acceptable use first port
-        {
-	    int index;
-	    const char *name;
-	    for (index = 0; (name = net_devname(index)) != NULL; index++)
-		if (!strcmp((char *)opt->dflt, name))
-		    break;
-	    if (name == NULL)
-		name = net_devname(0);
-	    memcpy(dp, name, strlen(name) + 1);
-        }
-        break;
-#endif
 #endif
     case CONFIG_STRING:
         memcpy(dp, (void *)opt->dflt, config_length(CONFIG_STRING));

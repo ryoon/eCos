@@ -1,19 +1,3 @@
-2003-03-18  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/hal_aux.c (_csb281_pci_init): Display PCI bus - disabled.
-
-2003-03-11  Mark Salter  <msalter@redhat.com>
-
-	* src/redboot_linux_exec.c (do_exec): Call eth_drv_stop as necessary.
-
-2003-02-26  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/lcd_support.c (lcd_on): Enable/disable is still not stable.
-
-2003-02-25  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/lcd_support.c (lcd_on): Fix enable/disable code.
-
 2003-02-01  Gary Thomas  <gary@mlbassoc.com>
 
 	* src/sed135x_16bit.c: 

@@ -2,19 +2,19 @@
 # Reference to ecos.mak added by John Dallaway, eCosCentric Limited, 2003-01-20
 # This file is in the public domain and may be used for any purpose
 
-# Usage:   make INSTALL_DIR=/path/to/ecos/install
+# Usage:   make ECOS_INSTALL=/path/to/ecos/install
 
-INSTALL_DIR=$$(INSTALL_DIR) # override on make command line
+ECOS_INSTALL=$$(ECOS_INSTALL) # override on make command line
 
-include $(INSTALL_DIR)/include/pkgconf/ecos.mak
+include $(ECOS_INSTALL)/include/pkgconf/ecos.mak
 
 XCC           = $(ECOS_COMMAND_PREFIX)gcc
 XCXX          = $(XCC)
 XLD           = $(XCC)
 
-CFLAGS        = -I$(INSTALL_DIR)/include
+CFLAGS        = -I$(ECOS_INSTALL)/include
 CXXFLAGS      = $(CFLAGS)
-LDFLAGS       = -nostartfiles -L$(INSTALL_DIR)/lib -Ttarget.ld
+LDFLAGS       = -nostartfiles -L$(ECOS_INSTALL)/lib -Ttarget.ld
 
 # RULES
 

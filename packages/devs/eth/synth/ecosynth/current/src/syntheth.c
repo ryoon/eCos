@@ -451,11 +451,5 @@ synth_eth_init(struct cyg_netdevtab_entry* ndp)
         }
     }
     (*sc->funs->eth_drv->init)(sc, eth->MAC);
-
-#ifdef CYGPKG_NET
-    if (eth->multi_supported) {
-      sc->sc_arpcom.ac_if.if_flags |= IFF_ALLMULTI;
-    }
-#endif    
     return result;
 }

@@ -51,12 +51,9 @@
 #endif
 
 // include winsock2.h early to eliminate fd_set warning
-// FIXME: including winsock2.h early causes build failures
-// relating to the CreateDialog macro defined in the w32api.
-// Need to find a better point to #include <winsock2.h>
-//#ifdef __CYGWIN__
-//#include <winsock2.h>
-//#endif
+#ifdef __CYGWIN__
+#include <winsock2.h>
+#endif
 
 #include "wx/wx.h"
 #include "wx/splitter.h"

@@ -1,8 +1,3 @@
-2003-03-24  Gary Thomas  <gary@mlbassoc.com>
-
-	* cdl/adder_eth_drivers.cdl: Make sure this builds only for
-	the original Adder (PPC850)
-
 2002-11-25  Gary Thomas  <gthomas@ecoscentric.com>
 
 	* src/adder_eth.c: 

@@ -41,7 +41,7 @@
 //#####DESCRIPTIONBEGIN####
 //
 // Author(s):    jlarmour
-// Contributors: woehler
+// Contributors: 
 // Date:         2002-01-16
 // Purpose:      
 // Description:  
@@ -59,52 +59,23 @@
 #include <cyg/io/config_keys.h>
 #include <cyg/io/flash.h>
 #include <string.h> // memcpy
-#include <cyg/hal/hal_if.h>
 
 #define MIN(x,y) ((x)<(y) ? (x) : (y))
 
 // 1 per devtab entry, so only 1 for now
-//static char flashiodev_workspaces[1][FLASH_MIN_WORKSPACE];
-
-struct flashiodev_priv_t{
-	char workspace[FLASH_MIN_WORKSPACE];
-	char *start;
-	char *end;
-};
-
-static struct flashiodev_priv_t flashiodev_priv[1];
+static char flashiodev_workspaces[1][FLASH_MIN_WORKSPACE];
 
 static int dummy_printf( const char *fmt, ... ) {return 0;}
 
 static bool
 flashiodev_init( struct cyg_devtab_entry *tab )
 {
-    struct flashiodev_priv_t *dev = (struct flashiodev_priv_t *)tab->priv;
-    char *ws = dev->workspace;
+    char *ws = (char *)tab->priv;
     int stat = flash_init( ws, FLASH_MIN_WORKSPACE, &dummy_printf );
-    if ( stat == 0 ) {
-#ifdef CYGNUM_IO_FLASH_BLOCK_CFG_FIS_1
-        CYG_ADDRESS		flash_base;
-        unsigned long	size;
 
-        if(!CYGACC_CALL_IF_FLASH_FIS_OP(CYGNUM_CALL_IF_FLASH_FIS_GET_FLASH_BASE, 
-                                        CYGDAT_IO_FLASH_BLOCK_FIS_NAME_1,
-                                        &flash_base))
-            return false;
-        if(!CYGACC_CALL_IF_FLASH_FIS_OP(CYGNUM_CALL_IF_FLASH_FIS_GET_SIZE, 
-                                        CYGDAT_IO_FLASH_BLOCK_FIS_NAME_1,
-                                        &size))
-            return false;
-			
-        dev->start = (char *)flash_base;
-        dev->end = (char *)flash_base + size;
-#else
-        dev->start = (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1;
-        dev->end = (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + 
-            CYGNUM_IO_FLASH_BLOCK_LENGTH_1;
-#endif
+    if ( stat == 0 )
         return true;
-    } else
+    else
         return false;
 } // flashiodev_init()
 
@@ -121,21 +92,21 @@ static Cyg_ErrNo
 flashiodev_bread( cyg_io_handle_t handle, void *buf, cyg_uint32 *len,
                   cyg_uint32 pos)
 {
-	struct cyg_devtab_entry *tab = (struct cyg_devtab_entry *)handle;
-	struct flashiodev_priv_t *dev = (struct flashiodev_priv_t *)tab->priv;
-
-	char *startpos = dev->start + pos;
+    char *startpos = (char *)flash_info.start + pos + 
+        CYGNUM_IO_FLASH_BLOCK_OFFSET_1;
 
 #ifdef CYGPKG_INFRA_DEBUG // don't bother checking this all the time
     char *endpos = startpos + *len - 1;
-    char *flashend = MIN( (char *)flash_info.end, dev->end);
-    if ( startpos < dev->start )
+    char *flashend = MIN( (char *)flash_info.end,
+                          ((char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + 
+                           CYGNUM_IO_FLASH_BLOCK_LENGTH_1));
+    if ( startpos < (char *)flash_info.start+CYGNUM_IO_FLASH_BLOCK_OFFSET_1 )
         return -EINVAL;
     if ( endpos > flashend )
         return -EINVAL;
 #endif
-
     memcpy( buf, startpos, *len );
+    
     return ENOERR;
 } // flashiodev_bread()
 
@@ -143,17 +114,17 @@ static Cyg_ErrNo
 flashiodev_bwrite( cyg_io_handle_t handle, const void *buf, cyg_uint32 *len,
                    cyg_uint32 pos )
 {   
-	struct cyg_devtab_entry *tab = (struct cyg_devtab_entry *)handle;
-	struct flashiodev_priv_t *dev = (struct flashiodev_priv_t *)tab->priv;
-
     Cyg_ErrNo err = ENOERR;
     void *erraddr;
-    char *startpos = dev->start + pos;
+
+    char *startpos = (char *)flash_info.start + pos + CYGNUM_IO_FLASH_BLOCK_OFFSET_1;
 
 #ifdef CYGPKG_INFRA_DEBUG // don't bother checking this all the time
     char *endpos = startpos + *len - 1;
-    char *flashend = MIN( (char *)flash_info.end, dev->end);
-    if ( startpos < dev->start )
+    char *flashend = MIN( (char *)flash_info.end,
+                          ((char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + 
+                           CYGNUM_IO_FLASH_BLOCK_LENGTH_1));
+    if ( startpos < (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 )
         return -EINVAL;
     if ( endpos > flashend )
         return -EINVAL;
@@ -172,22 +143,22 @@ flashiodev_get_config( cyg_io_handle_t handle,
                        void* buf,
                        cyg_uint32* len)
 {
-	struct cyg_devtab_entry *tab = (struct cyg_devtab_entry *)handle;
-	struct flashiodev_priv_t *dev = (struct flashiodev_priv_t *)tab->priv;
-
     switch (key) {
     case CYG_IO_GET_CONFIG_FLASH_ERASE:
     {
         if ( *len != sizeof( cyg_io_flash_getconfig_erase_t ) )
              return -EINVAL;
         {
-            cyg_io_flash_getconfig_erase_t *e = (cyg_io_flash_getconfig_erase_t *)buf;
-            char *startpos = dev->start + e->offset;
+            cyg_io_flash_getconfig_erase_t *e =
+                (cyg_io_flash_getconfig_erase_t *)buf;
+            char *startpos = (char *)flash_info.start + e->offset + CYGNUM_IO_FLASH_BLOCK_OFFSET_1;
 
 #ifdef CYGPKG_INFRA_DEBUG // don't bother checking this all the time
             char *endpos = startpos + e->len - 1;
-		    char *flashend = MIN( (char *)flash_info.end, dev->end);
-			if ( startpos < dev->start )
+            char *flashend = MIN( (char *)flash_info.end,
+                          ((char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + 
+                           CYGNUM_IO_FLASH_BLOCK_LENGTH_1));
+            if ( startpos < (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 )
                 return -EINVAL;
             if ( endpos > flashend )
                 return -EINVAL;
@@ -205,7 +176,7 @@ flashiodev_get_config( cyg_io_handle_t handle,
                 (cyg_io_flash_getconfig_devsize_t *)buf;
 
 	    //d->dev_size = flash_info.blocks * flash_info.block_size;
-			d->dev_size = dev->end - dev->start;
+	    d->dev_size = CYGNUM_IO_FLASH_BLOCK_LENGTH_1;
         }
         return ENOERR;
     }
@@ -214,11 +185,12 @@ flashiodev_get_config( cyg_io_handle_t handle,
     {
         cyg_io_flash_getconfig_blocksize_t *b =
             (cyg_io_flash_getconfig_blocksize_t *)buf;
+        char *startpos = (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + b->offset;
 #ifdef CYGPKG_INFRA_DEBUG // don't bother checking this all the time
-       char *startpos = dev->start + b->offset;
-	    char *flashend = MIN( (char *)flash_info.end, dev->end);
-
-        if ( startpos < dev->start )
+        char *flashend = MIN( (char *)flash_info.end,
+                          ((char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 + 
+                           CYGNUM_IO_FLASH_BLOCK_LENGTH_1));
+        if ( startpos < (char *)flash_info.start + CYGNUM_IO_FLASH_BLOCK_OFFSET_1 )
             return -EINVAL;
         if ( startpos > flashend )
             return -EINVAL;
@@ -227,7 +199,7 @@ flashiodev_get_config( cyg_io_handle_t handle,
              return -EINVAL;
         
         // offset unused for now
-		b->block_size = flash_info.block_size;
+	b->block_size = flash_info.block_size;
         return ENOERR;
     }
 
@@ -243,9 +215,6 @@ flashiodev_set_config( cyg_io_handle_t handle,
                        const void* buf,
                        cyg_uint32* len)
 {
-	struct cyg_devtab_entry *tab = (struct cyg_devtab_entry *)handle;
-	struct flashiodev_priv_t *dev = (struct flashiodev_priv_t *)tab->priv;
-
     switch (key) {
     default:
         return -EINVAL;
@@ -271,6 +240,6 @@ BLOCK_DEVTAB_ENTRY( cyg_io_flashdev1,
                     &cyg_io_flashdev1_ops,
                     &flashiodev_init,
                     0, // No lookup required
-                    &flashiodev_priv[0] );
+                    &flashiodev_workspaces[0] );
 
 // EOF flashiodev.c

@@ -168,6 +168,11 @@ int  flash_erase_block(void* block, unsigned int size)
     __attribute__ ((section (".2ram.flash_erase_block")));
 int  flash_program_buf(void* addr, void* data, int len)
     __attribute__ ((section (".2ram.flash_program_buf")));
+static void _flash_query(void* data) __attribute__ ((section (".2ram._flash_query")));
+static int  _flash_erase_block(void* block, unsigned int size) 
+    __attribute__ ((section (".2ram._flash_erase_block")));
+static int  _flash_program_buf(void* addr, void* data, int len)
+    __attribute__ ((section (".2ram._flash_program_buf")));
 
 //----------------------------------------------------------------------------
 // Flash Query
@@ -176,8 +181,8 @@ int  flash_program_buf(void* addr, void* data, int len)
 // device(s) in series. It is assumed that any devices in series
 // will be of the same type.
 
-void
-flash_query(void* data)
+static void
+_flash_query(void* data)
 {
     volatile flash_data_t *ROM;
     volatile flash_data_t *f_s1, *f_s2;
@@ -213,6 +218,21 @@ flash_query(void* data)
     while ((--timeout != 0) && (w != *(FLASH_P2V(ROM)))) ;
 }
 
+void
+flash_query(void* data)
+{
+    int cache_on;
+
+    HAL_DCACHE_IS_ENABLED(cache_on);
+    if (cache_on) {
+        HAL_DCACHE_SYNC();
+        HAL_DCACHE_DISABLE();
+    }
+    _flash_query(data);
+    if (cache_on) {
+        HAL_DCACHE_ENABLE();
+    }
+}
 
 //----------------------------------------------------------------------------
 // Initialize driver details
@@ -275,8 +295,8 @@ flash_code_overlaps(void *start, void *end)
 //----------------------------------------------------------------------------
 // Erase Block
 
-int
-flash_erase_block(void* block, unsigned int size)
+static int
+_flash_erase_block(void* block, unsigned int size)
 {
     volatile flash_data_t* ROM, *BANK;
     volatile flash_data_t* b_p = (flash_data_t*) block;
@@ -410,11 +430,26 @@ flash_erase_block(void* block, unsigned int size)
     return res;
 }
 
+int
+flash_erase_block(void* block, unsigned int size)
+{
+    int ret, cache_on;
+    HAL_DCACHE_IS_ENABLED(cache_on);
+    if (cache_on) {
+        HAL_DCACHE_SYNC();
+        HAL_DCACHE_DISABLE();
+    }
+    ret = _flash_erase_block(block, size);
+    if (cache_on) {
+        HAL_DCACHE_ENABLE();
+    }
+    return ret;
+}
 
 //----------------------------------------------------------------------------
 // Program Buffer
-int
-flash_program_buf(void* addr, void* data, int len)
+static int
+_flash_program_buf(void* addr, void* data, int len)
 {
     volatile flash_data_t* ROM;
     volatile flash_data_t* BANK;
@@ -494,4 +529,19 @@ flash_program_buf(void* addr, void* data, int len)
     return res;
 }
 
+int
+flash_program_buf(void* addr, void* data, int len)
+{
+    int ret, cache_on;
+    HAL_DCACHE_IS_ENABLED(cache_on);
+    if (cache_on) {
+        HAL_DCACHE_SYNC();
+        HAL_DCACHE_DISABLE();
+    }
+    ret = _flash_program_buf(addr, data, len);
+    if (cache_on) {
+        HAL_DCACHE_ENABLE();
+    }
+    return ret;
+}
 #endif // CYGONCE_DEVS_FLASH_AMD_AM29XXXXX_INL

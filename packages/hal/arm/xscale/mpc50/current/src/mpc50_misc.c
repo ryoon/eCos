@@ -133,8 +133,6 @@ void plf_hardware_init(void)
 	gpioValue = gpioValue | (unsigned long)0x40 ;
 	*PXA2X0_CKEN = gpioValue ;
 
-	hal_if_init();				// Set up eCos/ROM interfaces
-
 	mpc50_user_hardware_init();
 
 	return ;

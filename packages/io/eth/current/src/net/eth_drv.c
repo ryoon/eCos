@@ -819,9 +819,6 @@ eth_drv_recv(struct eth_drv_sc *sc, int total_len)
 #ifdef CYGPKG_IO_ETH_DRIVERS_WARN_NO_MBUFS
         START_CONSOLE();
         diag_printf("warning: eth_recv out of MBUFs\n");
-#ifdef CYGDBG_NET_SHOW_MBUFS        
-        cyg_net_show_mbufs();
-#endif
         END_CONSOLE();
 #endif
     }
@@ -857,9 +854,6 @@ eth_drv_recv(struct eth_drv_sc *sc, int total_len)
 #ifdef CYGPKG_IO_ETH_DRIVERS_WARN_NO_MBUFS
                 START_CONSOLE();
                 diag_printf("out of MBUFs [2]");
-#ifdef CYGDBG_NET_SHOW_MBUFS                
-                cyg_net_show_mbufs();
-#endif
                 END_CONSOLE();
 #endif
                 sg_list[sg_len].buf = (CYG_ADDRESS)0;
@@ -878,9 +872,6 @@ eth_drv_recv(struct eth_drv_sc *sc, int total_len)
 #ifdef CYGPKG_IO_ETH_DRIVERS_WARN_NO_MBUFS
                 START_CONSOLE();
                 diag_printf("warning: eth_recv out of MBUFs\n");
-#ifdef CYGDBG_NET_SHOW_MBUFS                
-                cyg_net_show_mbufs();
-#endif
                 END_CONSOLE();
 #endif
                 sg_list[sg_len].buf = (CYG_ADDRESS)0;

@@ -9,7 +9,7 @@
 ## -------------------------------------------
 ## This file is part of eCos, the Embedded Configurable Operating System.
 ## Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
-## Copyright (C) 2002, 2003 Gary Thomas
+## Copyright (C) 2002 Gary Thomas
 ##
 ## eCos is free software; you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free
@@ -68,8 +68,6 @@ cdl_package CYGPKG_HAL_POWERPC_VIPER {
     implements    CYGNUM_HAL_QUICC_SMC1
     implements    CYGNUM_HAL_QUICC_SCC1
 
-    requires      { (CYGHWR_HAL_POWERPC_MPC8XX == "860T") || (CYGHWR_HAL_POWERPC_MPC8XX == "862P") }
-
     define_proc {
         puts $::cdl_system_header "#define CYGBLD_HAL_TARGET_H   <pkgconf/hal_powerpc_mpc8xx.h>"
         puts $::cdl_system_header "#define CYGBLD_HAL_PLATFORM_H <pkgconf/hal_powerpc_viper.h>"
@@ -96,7 +94,7 @@ cdl_package CYGPKG_HAL_POWERPC_VIPER {
     cdl_option CYGHWR_HAL_POWERPC_BOARD_SPEED {
         display          "Development board clock speed (MHz)"
         flavor           data
-        legal_values     { 47 51 55 59 63 100 }
+        legal_values     { 47 51 55 59 63 }
         default_value    63
         description      "
            VIPER Development Boards have various system clock speeds

@@ -1,18 +1,3 @@
-2003-04-10  Nick Garnett  <nickg@balti.calivar.com>
-
-	* src/mn10300_am31.ld:
-	Added .eh_frame to data section. This is a stopgap fix to allow
-	C++ programs that define exceptions to link and run. It does not
-	allow them to actually throw exceptions, since that depends on
-	compiler changes that have not been made. Further, more
-	far-reaching, linker script changes will also be needs when that
-	happens.	
-
-2003-03-14  Bart Veer  <bartv@ecoscentric.com>
-
-	* src/mn10300_am31.ld: add entries for debug sections, needed by
-	current tools
-
 2002-05-21  Jesper Skov  <jskov@redhat.com>
 
 	* include/var_cache.h (HAL_DCACHE_STORE): Fix warning.

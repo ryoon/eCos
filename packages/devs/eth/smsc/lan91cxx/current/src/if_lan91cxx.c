@@ -194,7 +194,6 @@ smsc_lan91cxx_init(struct cyg_netdevtab_entry *tab)
 #if CYGINT_DEVS_ETH_SMSC_LAN91CXX_PCMCIA_MODE
     unsigned char ecor, ecsr;
 #endif
-    cyg_bool esa_configured = false;
 
     DEBUG_FUNCTION();
 
@@ -303,46 +302,16 @@ smsc_lan91cxx_init(struct cyg_netdevtab_entry *tab)
         put_reg(sc, LAN91CXX_IA01+i/2,
                 cpd->enaddr[i] | (cpd->enaddr[i+1] << 8));
 #else // not CYGINT_DEVS_ETH_SMSC_LAN91CXX_STATIC_ESA
-    // Find ESA - check possible sources in sequence and stop when
-    // one provides the ESA:
-    //   RedBoot option (via provide_esa)
-    //   Compile-time configuration
-    //   EEPROM
+    // Use the address from the serial EEPROM
 
-    if (NULL != cpd->provide_esa) {
-        esa_configured = cpd->provide_esa(cpd);
-# if DEBUG & 8
-        if (esa_configured)
-            diag_printf("Got ESA from RedBoot option\n");
-# endif
-    }
-    if (!esa_configured && cpd->hardwired_esa) {
-        // ESA is already set in cpd->esa[]
-        esa_configured = true;
-# if DEBUG & 8
-        diag_printf("Got ESA from cpd\n");
-# endif
-    }
-    if (esa_configured) {
-        // Set up hardware address
-        for (i = 0;  i < sizeof(cpd->enaddr);  i += 2)
-            put_reg(sc, LAN91CXX_IA01+i/2,
-                    cpd->enaddr[i] | (cpd->enaddr[i+1] << 8));
-    } else {
-        // Use the address from the serial EEPROM
-        // Read out hardware address
-        for (i = 0;  i < sizeof(cpd->enaddr);  i += 2) {
-            unsigned short z = get_reg(sc, LAN91CXX_IA01+i/2 );
-            cpd->enaddr[i] =   (unsigned char)(0xff & z);
-            cpd->enaddr[i+1] = (unsigned char)(0xff & (z >> 8));
-        }
-        esa_configured = true;
-# if DEBUG & 8
-        diag_printf("Got ESA from eeprom\n");
-# endif
+    // Read out hardware address
+    for (i = 0;  i < sizeof(cpd->enaddr);  i += 2) {
+        unsigned short z = get_reg(sc, LAN91CXX_IA01+i/2 );
+        cpd->enaddr[i] =   (unsigned char)(0xff & z);
+        cpd->enaddr[i+1] = (unsigned char)(0xff & (z >> 8));
     }
 #if DEBUG & 9
-    diag_printf("LAN91CXX - ESA: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    diag_printf("LAN91CXX - eeprom ESA: %02x:%02x:%02x:%02x:%02x:%02x\n",
                 cpd->enaddr[0],
                 cpd->enaddr[1],
                 cpd->enaddr[2],
@@ -747,7 +716,7 @@ lan91cxx_send(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len,
         plen += sg_list[i].len;
 
     CYG_ASSERT( plen == total_len, "sg data length mismatch" );
-
+    
     // Alloc new TX packet
     do {
         put_reg(sc, LAN91CXX_MMU_COMMAND, LAN91CXX_MMU_alloc_for_tx
@@ -792,9 +761,9 @@ lan91cxx_send(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len,
     // data writes.
 
     // Prepare header:
-    put_data(sc, CYG_CPU_TO_LE16(0));        // reserve space for status word
+    put_data(sc, 0);        // reserve space for status word
     // packet length (includes status, byte-count and control shorts)
-    put_data(sc, CYG_CPU_TO_LE16(0x7FE & (plen + 6)) ); // Always even, always < 15xx(dec)
+    put_data(sc, 0x7FE & (plen + 6) ); // Always even, always < 15xx(dec)
 
     // Put data into buffer
     for (i = 0;  i < sg_len;  i++) {
@@ -990,14 +959,11 @@ lan91cxx_RxEvent(struct eth_drv_sc *sc)
                                  LAN91CXX_POINTER_AUTO_INCR | 0x0000));
 #ifdef LAN91CXX_32BIT_RX
     val = get_data(sc);
-    val = CYG_LE32_TO_CPU(val);
     stat = val & 0xffff;
     len = ((val >> 16) & 0xffff) - 6;   // minus header/footer words
 #else
     stat = get_data(sc);
-    stat = CYG_LE16_TO_CPU(stat);
-    len = get_data(sc);
-    len = CYG_LE16_TO_CPU(len) - 6;     // minus header/footer words
+    len = get_data(sc) - 6;             // minus header/footer words
 #endif
 
 #ifdef KEEP_STATISTICS
@@ -1053,8 +1019,7 @@ lan91cxx_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len)
     struct lan91cxx_priv_data *cpd = 
         (struct lan91cxx_priv_data *)sc->driver_private;
 #endif
-    int i;
-    short mlen=0, plen;
+    int i, mlen=0, plen;
     rxd_t *data=NULL, val;
     unsigned char *cp, cval;
 
@@ -1068,11 +1033,9 @@ lan91cxx_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len)
 
     // packet length (minus header/footer)
 #ifdef LAN91CXX_32BIT_RX
-    val = CYG_LE32_TO_CPU(val);
     plen = (val >> 16) - 6;
 #else
-    plen = get_data(sc);
-    plen = CYG_LE16_TO_CPU(plen) - 6;
+    plen = get_data(sc) - 6;
 #endif
     if (val & LAN91CXX_RX_STATUS_ODDFRM)
 	plen++;
@@ -1103,7 +1066,6 @@ lan91cxx_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len)
     }
     val = get_data(sc); // Read control word (and potential data) unconditionally
 #ifdef LAN91CXX_32BIT_RX
-    val = CYG_LE32_TO_CPU(val);
     if (plen & 2) {
 	if (data)
 	    *(cyg_uint16 *)data = val & 0xffff;

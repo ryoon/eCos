@@ -462,26 +462,6 @@ package CYGPKG_DEVS_FLASH_IQ80321 {
 	   on the IQ80321 platform."
 }
 
-package CYGPKG_DEVS_FLASH_IXDP425 {
-	alias 		{ "FLASH memory support for IXDP425" flash_ixdp425 }
-	directory	devs/flash/arm/ixdp425
-	script		flash_ixdp425.cdl
-	hardware
-        description "
-           This package contains hardware support for FLASH memory
-	   on the IXDP425 platform."
-}
-
-package CYGPKG_DEVS_FLASH_GRG {
-	alias 		{ "FLASH memory support for GRG" flash_grg }
-	directory	devs/flash/arm/grg
-	script		flash_grg.cdl
-	hardware
-        description "
-           This package contains hardware support for FLASH memory
-	   on the Intel Generic Residential Gateway platform."
-}
-
 package CYGPKG_DEVS_FLASH_ARM_INTEGRATOR {
         alias           { "FLASH memory support for ARM INTEGRATOR" flash_integrator }
         directory       devs/flash/arm/integrator
@@ -550,6 +530,16 @@ package CYGPKG_DEVS_FLASH_VIPER {
         description "
            This package contains hardware support for FLASH memory
 	   on the A&M PowerPC/8xx VIPER platform."
+}
+
+package CYGPKG_DEVS_FLASH_POWERPC_ADDER {
+	alias 		{ "FLASH memory support for A&M Adder PowerPC/85x" flash_adder }
+	directory	devs/flash/powerpc/adder
+	script		flash_adder.cdl
+	hardware
+        description "
+           This package contains hardware support for FLASH memory
+	   on the A&M PowerPC/8xx ADDER platform."
 }
 
 package CYGPKG_DEVS_FLASH_MN10300_STB {
@@ -1155,17 +1145,6 @@ package CYGPKG_NS_DNS {
 	script		dns.cdl
         description     "DNS client support."
 }
-
-package CYGPKG_NET_SNTP {
-        alias           { "SNTP support" sntp }
-        directory       net/sntp
-        script          sntp.cdl
-        description "
-This package provides a SNTP client which can recieve broadcast time 
-information and set the system clock."
-}  
-
-
 package CYGPKG_DEVS_ETH_ARM_EDB7XXX {
 	alias 		{ "Cirrus Logic ethernet driver for EP7xxx boards" edb7xxx_eth_driver }
 	hardware
@@ -1330,6 +1309,14 @@ package CYGPKG_DEVS_ETH_POWERPC_VIPER {
         description     "Ethernet driver specifics for A&M Viper (MPC8xxT) based boards."
 }
 
+package CYGPKG_DEVS_ETH_POWERPC_ADDER {
+	alias 		{ "A&M Adder ethernet driver" adder_eth_driver }
+	hardware
+	directory	devs/eth/powerpc/adder
+	script		adder_eth_drivers.cdl
+        description     "Ethernet driver specifics for A&M Adder (MPC85x) based boards."
+}
+
 package CYGPKG_DEVS_ETH_INTEL_I82559 {
 	alias 		{ "Intel 82559 ethernet driver"
 			   devs_eth_intel_i82559 i82559_eth_driver }
@@ -1393,24 +1380,6 @@ package CYGPKG_DEVS_ETH_ARM_XSCALE_IQ80310 {
 	directory	devs/eth/arm/iq80310
 	script		iq80310_eth_drivers.cdl
         description     "Ethernet driver for Intel IQ80310 with onboard 82559 NIC."
-}
-
-package CYGPKG_DEVS_ETH_ARM_IXDP425_I82559 {
-	alias 		{ "IXDP425 (PCI) / Intel 82559 ethernet driver"
-			   devs_eth_arm_ixdp425_i82559 }
-	hardware
-	directory	devs/eth/arm/ixdp425/i82559
-	script		ixdp425_i82559_eth_driver.cdl
-        description     "Ethernet driver for IXDP425 with Intel 82559 PCI NIC."
-}
-
-package CYGPKG_DEVS_ETH_ARM_GRG_I82559 {
-	alias 		{ "GRG / Intel 82559 ethernet driver"
-			   devs_eth_arm_grg_i82559 }
-	hardware
-	directory	devs/eth/arm/grg/i82559
-	script		grg_i82559_eth_driver.cdl
-        description     "Ethernet driver for GRG with Intel 82559 PCI NIC."
 }
 
 package CYGPKG_DEVS_ETH_I386_PC_I82559 {
@@ -2273,36 +2242,6 @@ package CYGPKG_HAL_ARM_XSCALE_IQ80321 {
         eCos on an Intel XScale IQ80321 evaluation board."
 }
 
-package CYGPKG_HAL_ARM_XSCALE_IXP425 {
-	alias		{ "Intel XScale IXP425 Network Processor" hal_arm_xscale_ixp425 }
-	directory	hal/arm/xscale/ixp425
-	script		hal_arm_xscale_ixp425.cdl
-	hardware
-        description "
-        The XScale IXP425 HAL package provides the support needed to run
-        eCos on Intel XScale IXP425 network processor based systems."
-}
-
-package CYGPKG_HAL_ARM_XSCALE_IXDP425 {
-	alias		{ "Intel XScale IXDP425 Network Processor eval board" hal_arm_xscale_ixdp425 }
-	directory	hal/arm/xscale/ixdp425
-	script		hal_arm_xscale_ixdp425.cdl
-	hardware
-        description "
-        The IXDP425 HAL package provides the support needed to run
-        eCos on an Intel XScale IXDP425 network processor evaluation board."
-}
-
-package CYGPKG_HAL_ARM_XSCALE_GRG {
-	alias		{ "Intel XScale Generic Residential Gateway" hal_arm_xscale_grg }
-	directory	hal/arm/xscale/grg
-	script		hal_arm_xscale_grg.cdl
-	hardware
-        description "
-        The GRG HAL package provides the support needed to run eCos on an
-        Intel Generic Residential Gateway evaluation board."
-}
-
 package CYGPKG_HAL_ARM_XSCALE_PXA2X0 {
 	alias		{ "Intel PXA2X0" hal_arm_xscale_pxa2x0 }
 	directory	hal/arm/xscale/pxa2x0
@@ -2738,6 +2677,16 @@ package CYGPKG_HAL_POWERPC_VIPER {
             eCos on a A&M VIPER board equipped with a PowerPC processor."
 }
 
+package CYGPKG_HAL_POWERPC_ADDER {
+	alias		{ "A&M Adder PPC85x board" hal_powerpc_adder powerpc_adder_hal }
+	directory	hal/powerpc/adder
+	script		hal_powerpc_adder.cdl
+	hardware
+        description "
+            The ADDER HAL package provides the support needed to run
+            eCos on a A&M ADDER board equipped with a PowerPC processor."
+}
+
 package CYGPKG_HAL_POWERPC_TS6 {
 	alias		{ "Delphi TigerSHARC-6 board" hal_powerpc_ts6 powerpc_ts6_hal }
 	directory	hal/powerpc/ts6
@@ -2761,14 +2710,16 @@ package CYGPKG_HAL_POWERPC_VADS {
 }
 
 package CYGPKG_HAL_QUICC {
-	alias		{ "Motorola MPC8xx QUICC support" hal_quicc quicc_hal quicc }
+	alias		{ "Motorola MBX860/821 QUICC support" hal_quicc quicc_hal quicc }
 	directory	hal/powerpc/quicc
 	script		hal_powerpc_quicc.cdl
 	hardware
         description "
             The QUICC package provides some of the support needed
-            to run eCos on a Motorola MPC8xx processors, using the QUICC
-            communications subsystem."
+            to run eCos on a Motorola MBX board, using the QUICC
+            feature of the MPC860 and MPC821 CPUs.
+            Currently only serial IO via SMC1 is provided by
+            this package."
 }
 
 package CYGPKG_HAL_POWERPC_SIM {
@@ -3671,40 +3622,6 @@ target iq80321 {
         eCos on an Intel XScale IQ80321 board."
 }
 
-target ixdp425 {
-	alias { "IXDP425 board" ixdp425 }
-	packages { CYGPKG_HAL_ARM
-                   CYGPKG_HAL_ARM_XSCALE_CORE
-	           CYGPKG_HAL_ARM_XSCALE_IXP425
-                   CYGPKG_HAL_ARM_XSCALE_IXDP425
-		   CYGPKG_IO_PCI
-                   CYGPKG_DEVS_ETH_INTEL_I82559
-		   CYGPKG_DEVS_ETH_ARM_IXDP425_I82559
-                   CYGPKG_DEVS_FLASH_STRATA
-		   CYGPKG_DEVS_FLASH_IXDP425
-        }
-        description "
-        The ixdp425 target provides the packages needed to run
-        eCos on an Intel network processor evaluation board."
-}
-
-target grg {
-	alias { "Generic Residential Gateway" grg }
-	packages { CYGPKG_HAL_ARM
-                   CYGPKG_HAL_ARM_XSCALE_CORE
-	           CYGPKG_HAL_ARM_XSCALE_IXP425
-                   CYGPKG_HAL_ARM_XSCALE_GRG
-		   CYGPKG_IO_PCI
-                   CYGPKG_DEVS_ETH_INTEL_I82559
-                   CYGPKG_DEVS_ETH_ARM_GRG_I82559
-                   CYGPKG_DEVS_FLASH_STRATA
-		   CYGPKG_DEVS_FLASH_GRG
-        }
-        description "
-        The grg target provides the packages needed to run
-        eCos on an Intel Generic Residential Gateway board."
-}
-
 target edb7xxx {
         alias		{ "Cirrus Logic EDB7xxx development board" edb7211 eb7xxx eb7211 }
 	packages	{ CYGPKG_HAL_ARM
@@ -4092,6 +4009,23 @@ target viper {
         description "
             The viper target provides the packages needed to run
             eCos on a A&M Viper PPC860 board."
+}
+
+target adder {
+        alias		{ "A&M Adder PPC850 board" adder850 }
+	packages        { CYGPKG_HAL_POWERPC
+                          CYGPKG_HAL_POWERPC_MPC8xx
+                          CYGPKG_HAL_POWERPC_ADDER
+                          CYGPKG_HAL_QUICC 
+                          CYGPKG_DEVS_FLASH_POWERPC_ADDER
+                          CYGPKG_DEVS_FLASH_AMD_AM29XXXXX
+                          CYGPKG_DEVS_ETH_POWERPC_QUICC
+                          CYGPKG_DEVS_ETH_POWERPC_ADDER
+                          CYGPKG_IO_SERIAL_POWERPC_QUICC_SMC
+        }
+        description "
+            The adder target provides the packages needed to run
+            eCos on a A&M Adder PPC850 board."
 }
 
 target psim {
@@ -4497,7 +4431,6 @@ target calm32_ceb {
            The calm32_ceb target provides the packages needed to run
            eCos on the CalmRISC32 Core Evaluation Board."
 }
-
 # --------------------------------------------------------------------------
 
 package CYGPKG_HAL_POWERPC_TS1000 {
@@ -4545,124 +4478,3 @@ target ts1000 {
             eCos on a Allied Telesyn TS1000 (PPC855T) board."
 }
 
-# --------------------------------------------------------------------------
-
-package CYGPKG_DEVS_FLASH_UE250 {
-	alias 		{ "FLASH memory support for uE250" flash_uE250 }
-	directory	devs/flash/arm/uE250
-	script		flash_uE250.cdl
-	hardware
-        description "
-           This package contains hardware support for FLASH memory
-	   on the uE250 platform."
-}
-
-package CYGPKG_DEVS_ETH_ARM_XSCALE_UE250 {
-	alias 		{ "NMI uE250 PCI ethernet driver" devs_eth_arm_ue250 }
-	hardware
-	directory	devs/eth/arm/uE250
-	script		uE250_eth_drivers.cdl
-        description     "Ethernet driver for NMI uE250 via PCI card."
-}
-
-package CYGPKG_HAL_ARM_XSCALE_UE250 {
-	alias		{ "NMI uEngine uE250" hal_arm_xscale_uE250 }
-	directory	hal/arm/xscale/uE250
-	script		hal_arm_xscale_uE250.cdl
-	hardware
-        description "
-        The UE250 HAL package provides the support needed to run
-        eCos on an NMI uEngine u250 board."
-}
-
-target uE250 {
-	alias { "NMI uEngine uE250 Board" uE250 ue250 }
-	packages { CYGPKG_HAL_ARM
-                   CYGPKG_HAL_ARM_XSCALE_CORE
-                   CYGPKG_HAL_ARM_XSCALE_PXA2X0
-                   CYGPKG_HAL_ARM_XSCALE_UE250
-                   CYGPKG_IO_PCI
-                   CYGPKG_IO_SERIAL_GENERIC_16X5X
-                   CYGPKG_DEVS_FLASH_STRATA
-                   CYGPKG_DEVS_FLASH_UE250
-                   CYGPKG_DEVS_ETH_NS_DP83902A
-                   CYGPKG_DEVS_ETH_ARM_XSCALE_UE250
-        }
-        description "
-        The uE250 target provides the packages needed to run
-        eCos on an NMI uEngine uE250 board."
-}
-
-# --------------------------------------------------------------------------
-
-package CYGPKG_HAL_POWERPC_ADDER {
-	alias		{ "A&M Adder PPC85x board" hal_powerpc_adder powerpc_adder_hal }
-	directory	hal/powerpc/adder
-	script		hal_powerpc_adder.cdl
-	hardware
-        description "
-            The ADDER HAL package provides the support needed to run
-            eCos on a A&M ADDER board equipped with a PowerPC processor."
-}
-
-package CYGPKG_DEVS_FLASH_POWERPC_ADDER {
-	alias 		{ "FLASH memory support for A&M Adder PowerPC/85x" flash_adder }
-	directory	devs/flash/powerpc/adder
-	script		flash_adder.cdl
-	hardware
-        description "
-           This package contains hardware support for FLASH memory
-	   on the A&M PowerPC/8xx ADDER platforms."
-}
-
-package CYGPKG_DEVS_ETH_POWERPC_ADDER {
-	alias 		{ "A&M Adder ethernet driver" adder_eth_driver }
-	hardware
-	directory	devs/eth/powerpc/adder
-	script		adder_eth_drivers.cdl
-        description     "Ethernet driver specifics for A&M Adder (MPC85x) based boards."
-}
-
-package CYGPKG_DEVS_ETH_POWERPC_ADDERII {
-        alias           { "A&M AdderII ethernet driver" adderII_eth_driver }
-        hardware
-        directory       devs/eth/powerpc/adderII
-        script          adderII_eth_drivers.cdl
-        description     "Ethernet driver specifics for A&M AdderII (MPC852T) based boards."
-}
-
-target adder {
-        alias		{ "A&M Adder PPC850 board" adder850 }
-	packages        { CYGPKG_HAL_POWERPC
-                          CYGPKG_HAL_POWERPC_MPC8xx
-                          CYGPKG_HAL_POWERPC_ADDER
-                          CYGPKG_HAL_QUICC 
-                          CYGPKG_DEVS_FLASH_POWERPC_ADDER
-                          CYGPKG_DEVS_FLASH_AMD_AM29XXXXX
-                          CYGPKG_DEVS_ETH_POWERPC_QUICC
-                          CYGPKG_DEVS_ETH_POWERPC_ADDER
-                          CYGPKG_IO_SERIAL_POWERPC_QUICC_SMC
-        }
-        enable { CYGHWR_HAL_POWERPC_ADDER_I }
-        description "
-            The adder target provides the packages needed to run
-            eCos on a A&M Adder PPC850 board."
-}
-
-target adderII {
-        alias		{ "A&M Adder PPC852T board" adder852T }
-	packages        { CYGPKG_HAL_POWERPC
-                          CYGPKG_HAL_POWERPC_MPC8xx
-                          CYGPKG_HAL_POWERPC_ADDER
-                          CYGPKG_HAL_QUICC 
-                          CYGPKG_DEVS_FLASH_POWERPC_ADDER
-                          CYGPKG_DEVS_FLASH_AMD_AM29XXXXX
-                          CYGPKG_DEVS_ETH_POWERPC_FEC
-                          CYGPKG_DEVS_ETH_POWERPC_ADDERII
-                          CYGPKG_IO_SERIAL_POWERPC_QUICC_SMC
-        }
-        enable { CYGHWR_HAL_POWERPC_ADDER_II }
-        description "
-            The adderII target provides the packages needed to run
-            eCos on a A&M Adder PPC852T board."
-}

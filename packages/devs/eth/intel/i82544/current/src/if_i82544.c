@@ -8,7 +8,7 @@
 //####ECOSGPLCOPYRIGHTBEGIN####
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
-// Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Red Hat, Inc.
+// Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -394,10 +394,6 @@ static inline cyg_uint32 bus_to_virt(cyg_uint32 p_bus)
 #define EE_CS		0x02            // EEPROM chip select.
 #define EE_DATA_WRITE	0x04            // EEPROM chip data in.
 #define EE_DATA_READ	0x08            // EEPROM chip data out.
-#define EE_REQ          0x40            // EEPROM request (82546 only)
-#define EE_GNT          0x80            // EEPROM grant   (82546 only)
-#define EE_PRES         0x100           // EEPROM present (82546 only)
-#define EE_SIZE         0x200           // EEPROM size    (82546 only)
 #define EE_ENB		(0x10|EE_CS)
 
 
@@ -797,9 +793,10 @@ static int mii_read_register( struct i82544 *p_i82544, int phy, int regnum )
         value = MII_READ_REGVAL();
         MII_IDLE();
     }
-    else
+    else if( p_i82544->device == 0x1008 )
     {
-        // Others, read MII register via MDIC register.
+        // An 82544, read MII register via MDIC register.
+        // UNTESTED
         
         cyg_uint32 mdic = (2<<26) | (phy<<21) | (regnum<<16);
 
@@ -835,9 +832,10 @@ static void mii_write_register( struct i82544 *p_i82544, int phy, int regnum, in
         MII_WRITE_REGVAL( value );
         MII_IDLE();
     }
-    else
+    else if( p_i82544->device == 0x1008 )
     {
-        // Others, write MII register via MDIC register.
+        // An 82544, write MII register via MDIC register.
+        // UNTESTED
 
         cyg_uint32 mdic = (1<<26) | (phy<<21) | (regnum<<16) | (value&0xFFFF);
 
@@ -900,20 +898,10 @@ static void show_phy( struct i82544 *p_i82544, int phy )
 #endif
 
 
-static inline void ee_select( int ioaddr, struct i82544 *p_i82544 )
+static inline void ee_select( int ioaddr )
 {
     cyg_uint32 l;
-    l = INL( ioaddr + I82544_EECD );
-    if (p_i82544->device == 0x1010) {
-	// i82546 requires REQ/GNT before EEPROM access
-	l |= EE_REQ;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-	while ((l & EE_GNT) == 0)
-	    l = INL( ioaddr + I82544_EECD );
-    }
-    l &= ~0x3f;
-    l |= EE_ENB;
+    l = EE_ENB;
     OUTL( l, ioaddr + I82544_EECD );
     EE_DELAY();
     l |= EE_CS;
@@ -926,25 +914,19 @@ static inline void ee_select( int ioaddr, struct i82544 *p_i82544 )
 static inline void ee_deselect( int ioaddr )
 {
     cyg_uint32 l;
-    l = INL( ioaddr + I82544_EECD ) & ~0x3f;
-    l |= EE_ENB;
+    l = EE_ENB;
     OUTL( l, ioaddr + I82544_EECD );
     EE_PRINTF( "ee_deselect 1   : " EE_STUFF  );
     EE_DELAY();
     EE_DELAY();
     EE_DELAY();
-    l &= ~EE_CS;
+    l = EE_ENB & ~EE_CS;
     OUTL( l, ioaddr + I82544_EECD );
     l = INL( ioaddr + I82544_EECD );
     EE_PRINTF( "ee_deselect 2   : " EE_STUFF  );
     EE_DELAY();
     EE_DELAY();
     EE_DELAY();
-    if (l & EE_REQ) {
-	l &= ~EE_REQ;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-    }
 }
 
 static inline void ee_clock_up( int ioaddr )
@@ -994,7 +976,7 @@ static inline void ee_write_data_bit( int ioaddr, int databit )
 }
 
 // Pass ioaddr around "invisibly"
-#define EE_SELECT()              ee_select(ioaddr, p_i82544)
+#define EE_SELECT()              ee_select(ioaddr)
 #define EE_DESELECT()            ee_deselect(ioaddr)
 #define EE_CLOCK_UP()            ee_clock_up(ioaddr)
 #define EE_CLOCK_DOWN()          ee_clock_down(ioaddr)
@@ -1006,80 +988,74 @@ static inline void ee_write_data_bit( int ioaddr, int databit )
 static int
 get_eeprom_size( struct i82544 *p_i82544 )
 {
-    cyg_uint32 l, ioaddr = p_i82544->io_address;
-    int i, tmp, addrbits;
-
-    l = INL( ioaddr + I82544_EECD );
+//    int i, addrbits, tmp;
+//    cyg_uint32 ioaddr = p_i82544->io_address;
 
 #ifdef DEBUG_EE
     diag_printf( "get_eeprom_size\n" );
 #endif
 
-    if (p_i82544->device == 0x1010) {
-	
-	l |= EE_REQ;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-	while ((l & EE_GNT) == 0)
-	    l = INL( ioaddr + I82544_EECD );
-	l &= ~0x3f;
-	l |= EE_ENB;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-	l |= EE_CS;
-	OUTL( l, ioaddr + I82544_EECD );
-	l = INL( ioaddr + I82544_EECD );
-	EE_DELAY();
+#if 1
+    return 6;
+#else    
+    // Should already be not-selected, but anyway:
+    EE_SELECT();
 
-	for (i = 3; i >= 0; i--) { // Doc says to shift out a zero then:
-	    tmp = (6 & (1 << i)) ? 1 : 0; // "6" is the "read" command.
-	    EE_WRITE_DATA_BIT(tmp);
-	    EE_CLOCK_UP();
-	    EE_CLOCK_DOWN();
-	}
-	// Now clock out address zero, looking for the dummy 0 data bit
-	for ( i = 1; i <= 10; i++ ) {
-	    EE_WRITE_DATA_BIT(0);
-	    EE_CLOCK_UP();
-	    EE_CLOCK_DOWN();
-	    if (EE_READ_DATA_BIT() == 0)
-		break; // The dummy zero est arrive'
-	}
-
-	if (6 != i && 8 != i)
-	    diag_printf("no EEPROM found\n");
-
-	addrbits = i;
-        
-	tmp = 0;
-	for (i = 15; i >= 0; i--) {
-	    EE_CLOCK_UP();
-	    if (EE_READ_DATA_BIT())
-		tmp |= (1<<i);
-	    EE_CLOCK_DOWN();
-	}
-
-	l = INL( ioaddr + I82544_EECD ) & ~0x3f;
-	l |= EE_ENB;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-	EE_DELAY();
-	EE_DELAY();
-	l &= ~EE_CS;
-	OUTL( l, ioaddr + I82544_EECD );
-	l = INL( ioaddr + I82544_EECD );
-	EE_DELAY();
-	EE_DELAY();
-	EE_DELAY();
-
-	l &= ~EE_REQ;
-	OUTL( l, ioaddr + I82544_EECD );
-	EE_DELAY();
-
-	return addrbits;
+#ifdef DEBUG_EE
+    diag_printf( "send command\n" );
+#endif
+    
+    // Shift the read command bits out.
+    for (i = 3; i >= 0; i--) { // Doc says to shift out a zero then:
+        tmp = (6 & (1 << i)) ? 1 : 0; // "6" is the "read" command.
+        EE_WRITE_DATA_BIT(tmp);
+        EE_CLOCK_UP();
+        EE_CLOCK_DOWN();
+    }
+#ifdef DEBUG_EE
+    diag_printf( "send address zero\n" );
+#endif
+    // Now clock out address zero, looking for the dummy 0 data bit
+    for ( i = 1; i <= 12; i++ ) {
+        EE_WRITE_DATA_BIT(0);
+        EE_CLOCK_UP();
+        tmp = EE_READ_DATA_BIT();
+        EE_CLOCK_DOWN();
+        if ( !tmp )
+            break;
     }
 
-    return 6;
+#ifdef DEBUG_EE
+    diag_printf( "eeprom data bits %d\n", i );
+#endif
+    
+    if ( 6 != i && 8 != i && 1 != i) {
+#ifdef DEBUG_EE
+        diag_printf( "*****EEPROM data bits not 6, 8 or 1*****\n" );
+#endif
+        addrbits = 1; // Flag no eeprom here.
+    }
+    else
+        addrbits = i;
+
+    // read in the data regardless
+    tmp = 0;
+    for (i = 15; i >= 0; i--) {
+        EE_CLOCK_UP();
+        if ( EE_READ_DATA_BIT() )
+            tmp |= (1<<i);
+        EE_CLOCK_DOWN();
+    }
+
+#ifdef DEBUG_EE
+    diag_printf( "eeprom first data word %x\n", tmp );
+#endif
+   
+    // Terminate the EEPROM access.
+    EE_DESELECT();
+    
+    return addrbits;
+#endif    
 }
 
 static int
@@ -1281,12 +1257,6 @@ i82544_init(struct cyg_netdevtab_entry * ndp)
 #ifdef DEBUG_EE
                 os_printf("Valid EEPROM checksum\n");
 #endif
-		// Second port of dual-port 82546 uses EEPROM ESA | 1
-		if (p_i82544->device == 0x1010) {
-		    cyg_uint8 devfn = CYG_PCI_DEV_GET_DEVFN(p_i82544->devid);
-		    if (CYG_PCI_DEV_GET_FN(devfn) == 1)
-			mac_address[5] |= 1;
-		}
                 eth_set_mac_address(p_i82544, mac_address, 0);
             }
         }
@@ -1346,6 +1316,7 @@ i82544_setup( struct i82544 *p_i82544 )
     cyg_uint32 ctrl_ext;
 
     ioaddr = p_i82544->io_address; // get 82544's I/O address
+
 
 #ifdef CYGHWR_DEVS_ETH_INTEL_I82544_USE_ASD
     // Use Auto-negotiation
@@ -2471,8 +2442,7 @@ find_82544s_match_func( cyg_uint16 v, cyg_uint16 d, cyg_uint32 c, void *p )
     return ((0x8086 == v) &&
             ((0x1004 == d) ||   // 82543
              (0x100d == d) ||   // 82543
-             (0x1008 == d) ||   // 82544
-             (0x1010 == d)      // 82546
+             (0x1008 == d)      // 82544
             )
            );
 }
@@ -2522,7 +2492,7 @@ pci_init_find_82544s( void )
         // See above for find_82544s_match_func
         if (cyg_pci_find_matching( &find_82544s_match_func, NULL, &devid )) {
 #ifdef DEBUG
-            db_printf("eth%d = 8254x\n", device_index);
+            db_printf("eth%d = 82544\n", device_index);
 #endif
             cyg_pci_get_device_info(devid, &dev_info);
 

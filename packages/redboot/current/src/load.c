@@ -9,7 +9,7 @@
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
-// Copyright (C) 2002, 2003 Gary Thomas
+// Copyright (C) 2002 Gary Thomas
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -54,17 +54,13 @@
 //==========================================================================
 
 #include <redboot.h>
-#include <elf.h>
-#ifdef CYGBLD_BUILD_REDBOOT_WITH_XYZMODEM
 #include <xyzModem.h>
-#endif
+#include <elf.h>
 #ifdef CYGPKG_REDBOOT_DISK
 #include <fs/disk.h>
 #endif
 #ifdef CYGPKG_REDBOOT_NETWORKING
-#ifdef CYGSEM_REDBOOT_NET_TFTP_DOWNLOAD
 #include <net/tftp_support.h>
-#endif
 #ifdef CYGSEM_REDBOOT_NET_HTTP_DOWNLOAD
 #include <net/http.h>
 #endif
@@ -142,9 +138,6 @@ redboot_getc(void)
         getc_info.bufp = getc_info.buf;
         getc_info.len = (*getc_info.fun)(getc_info.bufp, BUF_SIZE, &getc_info.err);
         if ((getc_info.avail = getc_info.len) <= 0) {
-            if (getc_info.len < 0) {
-                diag_printf("I/O error: %s\n", (getc_info.io->error)(getc_info.err));
-            }
             if (getc_info.verbose) diag_printf("\n");
             return -1;
         }
@@ -595,7 +588,7 @@ do_load(int argc, char *argv[])
     char *filename = 0;
     struct option_info opts[7];
     connection_info_t info;
-    getc_io_funcs_t *io = NULL;
+    getc_io_funcs_t *io;
     struct load_io_entry *io_tab;
 #ifdef CYGSEM_REDBOOT_VALIDATE_USER_RAM_LOADS
     bool spillover_ok = false;
@@ -658,6 +651,7 @@ do_load(int argc, char *argv[])
         return;
     }
     if (mode_str_set) {
+        io = (getc_io_funcs_t *)NULL;
         for (io_tab = __RedBoot_LOAD_TAB__; 
              io_tab != &__RedBoot_LOAD_TAB_END__;  io_tab++) {
             if (strncasecmp(&mode_str[0], io_tab->name, strlen(&mode_str[0])) == 0) {
@@ -683,28 +677,13 @@ do_load(int argc, char *argv[])
             return;
         }
     } else {
-        char *which;
         io_tab = (struct load_io_entry *)NULL;  // Default
 #ifdef CYGPKG_REDBOOT_NETWORKING
-#ifdef CYGSEM_REDBOOT_NET_TFTP_DOWNLOAD        
-        which = "TFTP";
         io = &tftp_io;
-#else if defined(CYGSEM_REDBOOT_NET_HTTP_DOWNLOAD)
-        which = "HTTP";
-        io = &http_io;
-#endif
-#endif
-        if (!io) {
-#ifdef CYGBLD_BUILD_REDBOOT_WITH_XYZMODEM
-            which = "Xmodem";
-            io = &xyzModem_io;
-            verbose = false;
 #else
-            diag_printf("No default protocol!\n");
-            return;
+        io = &xyzModem_io;
+        verbose = false;
 #endif
-        }
-        diag_printf("Using default protocol (%s)\n", which);
     }
 #ifdef CYGSEM_REDBOOT_VALIDATE_USER_RAM_LOADS
     if (base_addr_set &&

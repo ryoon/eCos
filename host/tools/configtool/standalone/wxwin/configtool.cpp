@@ -163,7 +163,7 @@ bool ecApp::OnInit()
 
     CeCosSocket::Init();
     CeCosTestPlatform::Load();
-
+    
     wxHelpProvider::Set(new wxSimpleHelpProvider);
     //wxHelpProvider::Set(new wxHelpControllerHelpProvider(& m_helpController));
 
@@ -174,9 +174,6 @@ bool ecApp::OnInit()
 #if wxUSE_STREAMS && wxUSE_ZIPSTREAM && wxUSE_ZLIB
     wxFileSystem::AddHandler(m_zipHandler);
 #endif
-
-    // Mandatory initialisation for Tcl 8.4
-    Tcl_FindExecutable(argv[0]);
 
     wxString currentDir = wxGetCwd();
 
@@ -246,7 +243,7 @@ bool ecApp::OnInit()
         wxLog::SetActiveTarget(new wxLogStderr);
 #endif
         wxString msg;
-        msg.Printf(wxT("eCos Configuration Tool (c) Red Hat, 2001 Version %s, %s"), ecCONFIGURATION_TOOL_VERSION, __DATE__);
+        msg.Printf(wxT("eCos Configuration Tool (c) Red Hat, 2001 Version %.2f, %s"), ecCONFIGURATION_TOOL_VERSION, __DATE__);
         wxLogMessage(msg);
         return FALSE;
     }
@@ -488,7 +485,7 @@ bool ecApp::OnInit()
                     wxString msg;
                     msg.Printf(wxT("Sorry, there was a problem compiling the help index."));
                     wxMessageBox(msg, wxGetApp().GetSettings().GetAppName(), wxICON_EXCLAMATION|wxOK);
-                    return FALSE;
+                    return FALSE;                   
                 }
             }
             else
@@ -496,7 +493,7 @@ bool ecApp::OnInit()
                 wxString msg;
                 msg.Printf(wxT("Sorry, there was no current document when compiling the help index."));
                 wxMessageBox(msg, wxGetApp().GetSettings().GetAppName(), wxICON_EXCLAMATION|wxOK);
-                return FALSE;
+                return FALSE;                   
             }
 
             // Return FALSE in order to quit the application
@@ -505,21 +502,6 @@ bool ecApp::OnInit()
     }
     else
     {
-        if (GetSettings().m_strRepository.IsEmpty()) // first invocation by this user
-        {
-            // we have no clues as to the location of the repository so
-            // test for ../../packages relative to the configtool location
-            wxFileName repository = wxFileName (m_appDir, wxEmptyString);
-            repository.Normalize(); // remove trailing "./" if present
-            repository.RemoveDir (repository.GetDirCount()-1);
-            repository.RemoveDir (repository.GetDirCount()-1);
-            repository.AppendDir (wxT("packages"));
-            if (repository.DirExists()) // we've found a repository
-            {
-                repository.RemoveDir (repository.GetDirCount()-1);
-                GetSettings().m_strRepository = repository.GetFullPath();
-            }
-        }
         m_docManager->CreateDocument(wxString(""), wxDOC_NEW);
     }
 
@@ -658,7 +640,7 @@ bool ecApp::VersionStampSplashScreen()
         // Bottom left of area to start drawing at
 
         wxString verString;
-        verString.Printf("%s", ecCONFIGURATION_TOOL_VERSION);
+        verString.Printf("%.2f", ecCONFIGURATION_TOOL_VERSION);
 
         int x = 339; int y = 231;
 #ifdef __WXMSW__
@@ -864,7 +846,7 @@ void ecApp::Log(const wxString& msg)
         if ((msg == wxEmptyString) || (msg.Last() != wxT('\n')))
             frame->GetOutputWindow()->AppendText(wxT("\n"));
 
-//        frame->GetOutputWindow()->ShowPosition(frame->GetOutputWindow()->GetLastPosition());
+        frame->GetOutputWindow()->ShowPosition(frame->GetOutputWindow()->GetLastPosition());
     }
 }
 
@@ -1472,7 +1454,7 @@ bool ecPipedProcess::HasInput()
     bool hasInput = FALSE;
 
     wxInputStream& is = *GetInputStream();
-    if ( IsInputAvailable() )
+    if ( !is.Eof() )
     {
         wxTextInputStream tis(is);
 
@@ -1486,7 +1468,7 @@ bool ecPipedProcess::HasInput()
     }
 
     wxInputStream& es = *GetErrorStream();
-    if ( IsErrorAvailable() )
+    if ( !es.Eof() )
     {
         wxTextInputStream tis(es);
 

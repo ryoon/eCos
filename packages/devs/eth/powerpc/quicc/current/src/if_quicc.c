@@ -10,7 +10,6 @@
 // This file is part of eCos, the Embedded Configurable Operating System.
 // Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 // Copyright (C) 2002 Gary Thomas
-// Copyright (C) 2003 Nick Garnett <nickg@calivar.com>
 //
 // eCos is free software; you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -53,7 +52,7 @@
 //#####DESCRIPTIONBEGIN####
 //
 // Author(s):    gthomas
-// Contributors: gthomas, nickg
+// Contributors: gthomas
 // Date:         2000-01-10
 // Purpose:      
 // Description:  hardware driver for MPC8xx QUICC
@@ -87,9 +86,9 @@
 #include "quicc_eth.h"
 
 static unsigned char quicc_eth_rxbufs[CYGNUM_DEVS_ETH_POWERPC_QUICC_RxNUM]
-                                     [CYGNUM_DEVS_ETH_POWERPC_QUICC_BUFSIZE] __attribute__((aligned(HAL_DCACHE_LINE_SIZE)));
+                                     [CYGNUM_DEVS_ETH_POWERPC_QUICC_BUFSIZE];
 static unsigned char quicc_eth_txbufs[CYGNUM_DEVS_ETH_POWERPC_QUICC_TxNUM]
-                                     [CYGNUM_DEVS_ETH_POWERPC_QUICC_BUFSIZE]  __attribute__((aligned(HAL_DCACHE_LINE_SIZE)));
+                                     [CYGNUM_DEVS_ETH_POWERPC_QUICC_BUFSIZE];
 
 static struct quicc_eth_info quicc_eth0_info;
 static unsigned char _default_enaddr[] = { 0x08, 0x00, 0x3E, 0x28, 0x79, 0xB8};
@@ -248,8 +247,8 @@ quicc_eth_init(struct cyg_netdevtab_entry *tab)
 
     memset((void *)enet_pram, 0, sizeof(*enet_pram));
 
-    TxBD = _mpc8xx_allocBd(CYGNUM_DEVS_ETH_POWERPC_QUICC_TxNUM * sizeof(struct cp_bufdesc));
-    RxBD = _mpc8xx_allocBd(CYGNUM_DEVS_ETH_POWERPC_QUICC_RxNUM * sizeof(struct cp_bufdesc));
+    TxBD = cyg_hal_allocBd(CYGNUM_DEVS_ETH_POWERPC_QUICC_TxNUM * sizeof(struct cp_bufdesc));
+    RxBD = cyg_hal_allocBd(CYGNUM_DEVS_ETH_POWERPC_QUICC_RxNUM * sizeof(struct cp_bufdesc));
 
     txbd = (struct cp_bufdesc *)((char *)eppc + TxBD);
     rxbd = (struct cp_bufdesc *)((char *)eppc + RxBD);
@@ -371,7 +370,7 @@ quicc_eth_init(struct cyg_netdevtab_entry *tab)
     scc->scc_scce = 0xFFFF;
 
     // Enable interrupts
-    scc->scc_sccm = QUICC_SCCE_INTS | QUICC_SCCE_GRC | QUICC_SCCE_BSY;
+    scc->scc_sccm = QUICC_SCCE_INTS;
 
     // Set up SCCx to run in ethernet mode
     scc->scc_gsmr_h = 0;
@@ -455,65 +454,6 @@ quicc_eth_control(struct eth_drv_sc *sc, unsigned long key,
     case ETH_DRV_SET_MAC_ADDRESS:
         return 0;
         break;
-
-#ifdef ETH_DRV_GET_IF_STATS
-    case ETH_DRV_GET_IF_STATS:
-    {
-        struct ether_drv_stats *p = (struct ether_drv_stats *)data;
-        struct quicc_eth_info *qi = (struct quicc_eth_info *)sc->driver_private;
-
-        strcpy( p->description, "QUICC (MPC8xx) SCC Ethernet" );
-        CYG_ASSERT( 48 > strlen(p->description), "Description too long" );
-
-        // Really need to determine the following values properly, for
-        // now just assume the link is up, full duplex, unknown speed.
-        
-        p->operational = 3;            // LINK UP
-        p->duplex = 1;
-        p->speed = 0;
-
-        {
-            p->supports_dot3        = false;
-
-            // Those commented out are not available on this chip.
-
-            p->tx_good              = qi->tx_good             ;
-            //p->tx_max_collisions    = qi->tx_max_collisions ;
-            p->tx_late_collisions   = qi->tx_late_collisions  ;
-            p->tx_underrun          = qi->tx_underrun         ;
-            p->tx_carrier_loss      = qi->tx_carrier_loss     ;
-            p->tx_deferred          = qi->tx_deferred         ;
-            //p->tx_sqetesterrors   = qi->tx_sqetesterrors    ;
-            //p->tx_single_collisions = qi->tx_single_collisions;
-            //p->tx_mult_collisions   = qi->tx_mult_collisions  ;
-            //p->tx_total_collisions  = qi->tx_total_collisions ;
-            p->rx_good              = qi->rx_good             ;
-            p->rx_crc_errors        = qi->rx_crc_errors       ;
-            p->rx_align_errors      = qi->rx_align_errors     ;
-            p->rx_resource_errors   = qi->rx_resource_errors  ;
-            p->rx_overrun_errors    = qi->rx_overrun_errors   ;
-            p->rx_collisions        = qi->rx_collisions       ;
-            p->rx_short_frames      = qi->rx_short_frames     ;
-            p->rx_too_long_frames   = qi->rx_long_frames      ;
-            //p->rx_symbol_errors   = qi->rx_symbol_errors    ;
-        
-            p->interrupts           = qi->interrupts          ;
-            p->rx_count             = qi->rx_count            ;
-            p->rx_deliver           = qi->rx_deliver          ;
-            p->rx_resource          = qi->rx_resource         ;
-            p->rx_restart           = qi->rx_restart          ;
-            p->tx_count             = qi->tx_count            ;
-            p->tx_complete          = qi->tx_complete         ;
-            p->tx_dropped           = qi->tx_dropped          ;
-        }
-
-        p->tx_queue_len = CYGNUM_DEVS_ETH_POWERPC_QUICC_TxNUM;
-
-        return 0; // OK
-    }
-#endif
-
-        
     default:
         return 1;
         break;
@@ -545,17 +485,23 @@ quicc_eth_send(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len,
     int i, txindex, cache_state;
     unsigned int ctrl;
 
-    qi->tx_count++;
-    
     // Find a free buffer
     txbd = txfirst = qi->txbd;
-    if ((txbd->ctrl & (QUICC_BD_CTL_Ready | QUICC_BD_CTL_Int )))
+    while (txbd->ctrl & QUICC_BD_CTL_Ready) {
+        // This buffer is busy, move to next one
+        if (txbd->ctrl & QUICC_BD_CTL_Wrap) {
+            txbd = qi->tbase;
+        } else {
+            txbd++;
+        }
+        if (txbd == txfirst) {
 #ifdef CYGPKG_NET
             panic ("No free xmit buffers");
 #else
             diag_printf("QUICC Ethernet: No free xmit buffers\n");
 #endif
-
+        }
+    }
     // Remember the next buffer to try
     if (txbd->ctrl & QUICC_BD_CTL_Wrap) {
         qi->txbd = qi->tbase;
@@ -599,69 +545,19 @@ quicc_eth_RxEvent(struct eth_drv_sc *sc)
 {
     struct quicc_eth_info *qi = (struct quicc_eth_info *)sc->driver_private;
     volatile struct cp_bufdesc *rxbd;
-	
 
     rxbd = qi->rnext;
     while ((rxbd->ctrl & (QUICC_BD_CTL_Ready | QUICC_BD_CTL_Int)) == QUICC_BD_CTL_Int) {
-
-	qi->rx_count++;
-        
-        if( rxbd->ctrl & QUICC_BD_RX_MISS )
-        {
-            qi->rx_miss++;
-        }
-        if( rxbd->ctrl & QUICC_BD_RX_LG )
-        {
-            qi->rx_long_frames++;
-        }
-        if( rxbd->ctrl & QUICC_BD_RX_NO )
-        {
-            qi->rx_align_errors++;
-        }
-        if( rxbd->ctrl & QUICC_BD_RX_SH )
-        {
-            qi->rx_short_frames++;
-        }
-        if( rxbd->ctrl & QUICC_BD_RX_CR )
-        {
-            qi->rx_crc_errors++;
-        }
-        if( rxbd->ctrl & QUICC_BD_RX_OV )
-        {
-            qi->rx_overrun_errors++;
-        }
-
-        if( rxbd->ctrl & QUICC_BD_RX_CL )
-        {
-            qi->rx_collisions++;
-        }
-
-        if( (rxbd->ctrl & QUICC_BD_RX_ERRORS) == 0 )
-        {
-            qi->rx_good++;
-			
-            // OK frame - Prepare for callback
-            qi->rxbd = rxbd;  // Save for callback
-            set_led(LED_RxACTIVE);
-			
-            (sc->funs->eth_drv->recv)(sc, rxbd->length);
-			
-            clear_led(LED_RxACTIVE);
-        }
-        
-      
-        // Clear flags and wrap if needed else step up BD pointer 
-        if (rxbd->ctrl & QUICC_BD_CTL_Wrap) 
-        {
-            rxbd->ctrl = QUICC_BD_CTL_Ready | QUICC_BD_CTL_Int | QUICC_BD_CTL_Wrap;
+        qi->rxbd = rxbd;  // Save for callback
+        set_led(LED_RxACTIVE);
+        (sc->funs->eth_drv->recv)(sc, rxbd->length);
+        clear_led(LED_RxACTIVE);
+        rxbd->ctrl |= QUICC_BD_CTL_Ready;
+        if (rxbd->ctrl & QUICC_BD_CTL_Wrap) {
             rxbd = qi->rbase;
-        } 
-        else 
-        {
-            rxbd->ctrl = QUICC_BD_CTL_Ready | QUICC_BD_CTL_Int;
+        } else {
             rxbd++;
         }
-        
     }
     // Remember where we left off
     qi->rnext = (struct cp_bufdesc *)rxbd;
@@ -680,8 +576,7 @@ quicc_eth_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len)
     struct quicc_eth_info *qi = (struct quicc_eth_info *)sc->driver_private;
     unsigned char *bp;
     int i, cache_state;
-    int sg_list_null_buffer = 0;
-    
+
     bp = (unsigned char *)qi->rxbd->buffer;
     // Note: the MPC8xx does not seem to snoop/invalidate the data cache properly!
     HAL_DCACHE_IS_ENABLED(cache_state);
@@ -693,30 +588,7 @@ quicc_eth_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, int sg_len)
             memcpy((void *)sg_list[i].buf, bp, sg_list[i].len);
             bp += sg_list[i].len;
         }
-        else
-            sg_list_null_buffer = 1;
     }
-
-    // A NULL sg_list buffer usually means no mbufs, so we don't count
-    // it as a delivery, instead we count it as a resource error.
-    
-    if (!sg_list_null_buffer)
-        qi->rx_deliver++;
-    else
-        qi->rx_resource++;
-
-}
-
-
-static void
-quicc_eth_command( struct eth_drv_sc *sc, unsigned long cmd)
-{
-   volatile EPPC *eppc = (volatile EPPC *)eppc_base();
-   
-   eppc->cp_cr = QUICC_CPM_SCCx | cmd | QUICC_CPM_CR_BUSY;
-
-   while (eppc->cp_cr & QUICC_CPM_CR_BUSY )
-       continue;
 }
 
 static void
@@ -725,59 +597,23 @@ quicc_eth_TxEvent(struct eth_drv_sc *sc, int stat)
     struct quicc_eth_info *qi = (struct quicc_eth_info *)sc->driver_private;
     volatile struct cp_bufdesc *txbd;
     int txindex;
-    bool restart = false;
 
     txbd = qi->tnext;
-    
     while ((txbd->ctrl & (QUICC_BD_CTL_Ready | QUICC_BD_CTL_Int)) == QUICC_BD_CTL_Int) {
-
         txindex = ((unsigned long)txbd - (unsigned long)qi->tbase) / sizeof(*txbd);
-
-        qi->tx_complete++;
-        
-        (sc->funs->eth_drv->tx_done)(sc, qi->txkey[txindex], 0);
         txbd->ctrl &= ~QUICC_BD_CTL_Int;  // Reset int pending bit
-
-        if (txbd->ctrl & QUICC_BD_TX_LC )
-            qi->tx_late_collisions++, restart = true;
-        if (txbd->ctrl & QUICC_BD_TX_RL )
-            qi->tx_retransmit_error++, restart = true;
-        if (txbd->ctrl & QUICC_BD_TX_UN )
-            qi->tx_underrun++, restart = true;
-        if (txbd->ctrl & QUICC_BD_TX_CSL )
-            qi->tx_carrier_loss++;
-        if (txbd->ctrl & QUICC_BD_TX_HB )
-            qi->tx_heartbeat_loss++;        
-        if (txbd->ctrl & QUICC_BD_TX_DEF )
-            qi->tx_deferred++;        
-
-        if( (txbd->ctrl & QUICC_BD_TX_ERRORS) == 0 )
-            qi->tx_good++;
-
-        
+        (sc->funs->eth_drv->tx_done)(sc, qi->txkey[txindex], 0);
         if (txbd->ctrl & QUICC_BD_CTL_Wrap) {
-            txbd->ctrl = QUICC_BD_CTL_Wrap;
             txbd = qi->tbase;
         } else {
-            txbd->ctrl = 0;            
             txbd++;
         }
-	qi->txactive--;
+	if (--qi->txactive == 0) {
+	  clear_led(LED_TxACTIVE);
+	}
     }
-
-    if (qi->txactive == 0) {
-        clear_led(LED_TxACTIVE);
-    }
-    
     // Remember where we left off
     qi->tnext = (struct cp_bufdesc *)txbd;
-
-    if (restart)
-    {
-        quicc_eth_command(sc,QUICC_CPM_CR_RESTART_TX);
-        qi->tx_restart++;        
-    }
-    
 }
 
 //
@@ -790,31 +626,14 @@ quicc_eth_int(struct eth_drv_sc *sc)
     volatile struct scc_regs *scc = qi->ctl;
     unsigned short scce;
 
-    qi->interrupts++;
-
-    while ( (scce = scc->scc_scce) != 0 )
-    {
-        scc->scc_scce = scce;
-        
-        if ( (scce & (QUICC_SCCE_TXE | QUICC_SCCE_TX)) != 0)
-        {
+    while ((scce = (scc->scc_scce & QUICC_SCCE_INTS)) != 0) {
+        if ((scce & (QUICC_SCCE_TXE | QUICC_SCCE_TX)) != 0) {
             quicc_eth_TxEvent(sc, scce);
         }
-        if ( (scce & ( QUICC_SCCE_RXF | QUICC_SCCE_RX )) != 0)
-        {
+        if ((scce & QUICC_SCCE_RXF) != 0) {
             quicc_eth_RxEvent(sc);
         }
-        if ( (scce & QUICC_SCCE_BSY) != 0)
-        {
-            qi->rx_resource_errors++;
-        }
-        if ( (scce & QUICC_SCCE_GRC) != 0 )
-        {
-            quicc_eth_command(sc, QUICC_CPM_CR_RESTART_TX);
-            qi->tx_restart++;
-            quicc_eth_command(sc, QUICC_CPM_CR_HUNT_MODE);
-            qi->rx_restart++;
-        }
+        scc->scc_scce = scce;  // Reset the bits we handled
     }
 }
 

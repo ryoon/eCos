@@ -10,7 +10,7 @@
 //####COPYRIGHTBEGIN####
 //                                                                          
 // ----------------------------------------------------------------------------
-// Copyright (C) 2002, 2003 Bart Veer
+// Copyright (C) 2002 Bart Veer
 // Copyright (C) 1999, 2000 Red Hat, Inc.
 //
 // This file is part of the eCos host tools.
@@ -74,7 +74,7 @@ CYGDBG_DEFINE_MEMLEAK_COUNTER(CdlConfigurationBody);
 
 CdlConfigurationBody::CdlConfigurationBody(std::string name, CdlPackagesDatabase db, CdlInterpreter interp)
     : CdlNodeBody(name),
-      CdlToplevelBody(interp)
+      CdlToplevelBody(interp, db->get_component_repository())
 {
     CYG_REPORT_FUNCNAME("CdlConfiguration:: constructor");
     CYG_REPORT_FUNCARG1XV(this);
@@ -747,7 +747,6 @@ CdlConfigurationBody::load_package(CdlTransaction transaction, std::string name,
             throw CdlInputOutputException("Package " + name + " does not have an installed version `" + version + "'.");
         }
     }
-    std::string repository      = database->get_package_repository(name, version);
     std::string directory       = database->get_package_directory(name);
     std::string script          = database->get_package_script(name);
     CYG_ASSERTC(("" != directory) && ("" != script));
@@ -764,7 +763,7 @@ CdlConfigurationBody::load_package(CdlTransaction transaction, std::string name,
     }
     directory = tcl_result;
     
-    tcl_cmd   = "file isdirectory [file join \"" + repository + "\" " + directory + "]";
+    tcl_cmd   = "file isdirectory [file join \"" + database->get_component_repository() + "\" " + directory + "]";
     if ((TCL_OK != interp->eval(tcl_cmd, tcl_result)) || ("1" != tcl_result)) {
         throw CdlInputOutputException("Cannot load package `" + name + "', there is no directory `" + directory + "'.");
     }
@@ -793,7 +792,7 @@ CdlConfigurationBody::load_package(CdlTransaction transaction, std::string name,
     CdlConfiguration_CommitCancelLoad* load_op  = 0;
     
     try {
-        package = new CdlPackageBody(name, this, repository, directory);
+        package = new CdlPackageBody(name, this, directory);
 
         // The package should be added to the hierarchy immediately.
         // All nodes will get added to the hierarchy as they are
@@ -1257,11 +1256,12 @@ CdlConfigurationBody::set_template_file(CdlTransaction transaction, std::string 
     // Each new package needs to be registered as a template one.
     // NOTE: this may break if we start doing more interesting things
     // with savefiles.
+    const std::vector<CdlLoadable>& loadables = this->get_loadables();
+    unsigned int load_i = loadables.size();
     
     try {
         transaction->add_commit_cancel_op(rename_op);
         const std::vector<CdlLoadable>& loadables = this->get_loadables();
-        unsigned int load_i;
         for (i = (int) loadables.size() - 1; i >= 0; i--) {
             CdlPackage package = dynamic_cast<CdlPackage>(loadables[i]);
             if ((0 != package) && package->belongs_to_template()) {
@@ -1269,8 +1269,7 @@ CdlConfigurationBody::set_template_file(CdlTransaction transaction, std::string 
             }
         }
         current_template = "";
-        load_i = loadables.size();
-        
+
         this->add(transaction, filename, error_fn, warn_fn);
         this->current_template = filename;
         this->set_name(saved_name);

@@ -792,7 +792,7 @@ proc ecosadmin::is_empty_directory { dir } {
 
 proc ecosadmin::get_pathname_for_tcl { name } {
 
-	if { ( $ecosadmin::windows_host ) && ( $name != "" ) } {
+	if { $ecosadmin::windows_host } {
 
 		# If there is no logical drive letter specified
 		if { [ string match "?:*" $name ] == 0 } {

@@ -1,34 +1,3 @@
-2003-03-31  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/quicc_smc_serial.c (quicc_sxx_serial_init): Handle SCC3 on
-	various processors (signal routing differs).
-
-2003-03-28  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/quicc_smc_serial.c: Change how buffers are allocated & aligned
-	to a cache line - previous attempt wasted a huge amount of space.
-
-2003-03-23  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/quicc_smc_serial.h: Move common definitions to common
-	include file (in HAL).
-
-	* src/quicc_smc_serial.c: 
-	* cdl/ser_quicc_smc.cdl: Remove options for baud rate generator
-	assignment - use more generic [automatic] support.
-
-2003-03-17  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/quicc_smc_serial.h: 
-	* src/quicc_smc_serial.c: 
-	* cdl/ser_quicc_smc.cdl: Add support for SCC1/SCC2/SCC3.  Inspired
-	by Paul Randall <prandall@delta-info.com>
-
-2003-03-05  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/quicc_smc_serial.c: Use common routines to manage CPM/DPRAM
-	pointers - much nicer in a multi-driver environment.
-
 2003-02-24  Jonathan Larmour  <jifl@eCosCentric.com>
 
 	* cdl/ser_quicc_smc.cdl: Remove irrelevant doc link.

@@ -55,11 +55,7 @@
 #include "phy.h"
 
 // address of the LX970 phy
-#ifdef CYGPKG_DEVS_ETH_ARM_KS32C5000_PHYADDR
-#define LX970_ADDR  CYGPKG_DEVS_ETH_ARM_KS32C5000_PHYADDR
-#else
-#define LX970_ADDR  1
-#endif
+#define LX970_ADDR	0x20
 
 // LX970 register offsets
 #define	LX970_CNTL_REG 		0x00

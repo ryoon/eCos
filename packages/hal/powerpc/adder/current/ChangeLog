@@ -1,30 +1,3 @@
-2003-03-31  Gary Thomas  <gary@mlbassoc.com>
-
-	* cdl/hal_powerpc_adder.cdl: Enable use of SCC3 on AdderII.
-
-2003-03-24  Gary Thomas  <gary@mlbassoc.com>
-
-	* misc/redboot_ROMRAM.ecm: Remove.
-
-	* misc/adder_redboot_ROMRAM.ecm: 
-	* misc/adderII_redboot_ROMRAM.ecm: New file(s), distinguish platforms.
-
-	* src/hal_aux.c: 
-	* src/adder.S: 
-	* cdl/hal_powerpc_adder.cdl: Update to support new platform - AdderII.
-
-2003-03-23  Gary Thomas  <gary@mlbassoc.com>
-
-	* cdl/hal_powerpc_adder.cdl: New option for setting processor type.
-
-2003-03-20  Gary Thomas  <gary@mlbassoc.com>
-
-	* src/hal_aux.c (hal_platform_init): Fix SCC2/SCC3 routing.
-
-2003-03-11  Mark Salter  <msalter@redhat.com>
-
-	* src/redboot_linux_exec.c (do_exec): Call eth_drv_stop as necessary.
-
 2003-01-31  Gary Thomas  <gary@mlbassoc.com>
 
 	* cdl/hal_powerpc_adder.cdl: No tests currently defined.
@@ -67,7 +40,7 @@
 //####ECOSGPLCOPYRIGHTBEGIN####
 // -------------------------------------------
 // This file is part of eCos, the Embedded Configurable Operating System.
-// Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Red Hat, Inc.
+// Copyright (C) 1998, 1999, 2000, 2001, 2002 Red Hat, Inc.
 // Copyright (C) 2002 Gary Thomas
 //
 // eCos is free software; you can redistribute it and/or modify it under

@@ -1,15 +1,3 @@
-2003-03-23  Gary Thomas  <gary@mlbassoc.com>
-
-	* cdl/hal_powerpc_mbx.cdl: New option for setting processor type.
-
-2003-03-11  Mark Salter  <msalter@redhat.com>
-
-	* src/redboot_linux_exec.c (do_exec): Call eth_drv_stop as necessary.
-
-2003-03-07  Gary Thomas  <gary@mlbassoc.com>
-
-	* include/plf_stub.h: Remove [confusing] platform specific include.
-
 2002-12-02  Gary Thomas  <gthomas@ecoscentric.com>
 
 	* include/plf_intr.h: Use MPC8xx variant RESET support.

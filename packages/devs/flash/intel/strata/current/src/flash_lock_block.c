@@ -52,6 +52,7 @@
 
 #include "strata.h"
 
+#include <cyg/hal/hal_cache.h>
 
 //
 // CAUTION!  This code must be copied to RAM before execution.  Therefore,
@@ -64,10 +65,17 @@ flash_lock_block(volatile flash_t *block)
     volatile flash_t *ROM;
     flash_t stat;
     int timeout = 5000000;
+    int cache_on;
 
     // Get base address and map addresses to virtual addresses
     ROM = FLASH_P2V(CYGNUM_FLASH_BASE_MASK & (unsigned int)block);
     block = FLASH_P2V(block);
+
+    HAL_DCACHE_IS_ENABLED(cache_on);
+    if (cache_on) {
+        HAL_DCACHE_SYNC();
+        HAL_DCACHE_DISABLE();
+    }
 
     // Clear any error conditions
     ROM[0] = FLASH_Clear_Status;
@@ -81,6 +89,10 @@ flash_lock_block(volatile flash_t *block)
 
     // Restore ROM to "normal" mode
     ROM[0] = FLASH_Reset;
+
+    if (cache_on) {
+        HAL_DCACHE_ENABLE();
+    }
 
     return stat;
 }
