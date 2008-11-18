@@ -1,4 +1,4 @@
-/* Hay, the copyright is usefull for something! */
+/* Hey, the copyright is useful for something! */
 
 static char copyright[] = 
 "//=========================================================================="
@@ -63,6 +63,9 @@ static char copyright[] =
 
 #ifndef CYGINT_ISO_STRING_STRFUNCS
 # define NA_MSG "Need string functions for test"
+#endif
+#ifndef CYGSEM_IO_FLASH_LEGACY_API
+# define NA_MSG "Need legacy IO FLASH API for test"
 #endif
 
 #ifdef NA_MSG
