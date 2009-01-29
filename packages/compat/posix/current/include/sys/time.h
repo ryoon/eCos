@@ -5,16 +5,13 @@
 //      
 //
 //==========================================================================
-//####BSDCOPYRIGHTBEGIN####
-//
-// -------------------------------------------
-//
-// Portions of this software may have been derived from OpenBSD or other sources,
-// and are covered by the appropriate copyright disclaimers included herein.
-//
-// -------------------------------------------
-//
-//####BSDCOPYRIGHTEND####
+// ####BSDALTCOPYRIGHTBEGIN####                                             
+// -------------------------------------------                              
+// Portions of this software may have been derived from FreeBSD, OpenBSD,   
+// or other sources, and if so are covered by the appropriate copyright     
+// and license included herein.                                             
+// -------------------------------------------                              
+// ####BSDALTCOPYRIGHTEND####                                               
 //==========================================================================
 //#####DESCRIPTIONBEGIN####
 //
@@ -31,7 +28,7 @@
 
 
 /*	$OpenBSD: time.h,v 1.9 1999/12/06 19:36:42 aaron Exp $	*/
-/*	$NetBSD: time.h,v 1.1 2005/10/23 20:44:36 asl Exp $	*/
+/*	$NetBSD: time.h,v 1.2 2009/01/29 17:47:52 jlarmour Exp $	*/
 
 /*
  * Copyright (c) 1982, 1986, 1993
